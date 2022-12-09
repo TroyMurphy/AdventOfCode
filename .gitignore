@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+Debug/
+Release/
+*.log
+*.suo
+/build/
+.vs/
+.vscode/
+
+*.dll
