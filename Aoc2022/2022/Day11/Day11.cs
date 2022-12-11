@@ -23,7 +23,7 @@ namespace _2022.Day11
 				var monkey = new Monkey(
 					int.Parse(monkeyId.Value),
 					itemsString.Value.Split(new string[] { ",", " " }, StringSplitOptions.RemoveEmptyEntries)
-						.Select(x => int.Parse(x)).ToArray()
+						.Select(x => long.Parse(x)).ToArray()
 				);
 
 				var operationRegex = new Regex(@"Operation: new = old ([*+]) (.*)");
@@ -31,7 +31,7 @@ namespace _2022.Day11
 				monkey.SetOperation(operationMatch.Groups[1].Captures[0].Value, operationMatch.Groups[2].Captures[0].Value);
 
 				var testRegex = new Regex(@"Test: divisible by (\d+)");
-				monkey.SetDivisbleTest(int.Parse(testRegex.Match(GetLine(lineIndex++)).Groups[1].Captures[0].Value));
+				monkey.SetDivisibleTest(int.Parse(testRegex.Match(GetLine(lineIndex++)).Groups[1].Captures[0].Value));
 
 				var trueRegex = new Regex(@"If true: .*(\d+)");
 				monkey.TrueMonkey = int.Parse(trueRegex.Match(GetLine(lineIndex++)).Groups[1].Captures[0].Value);
@@ -51,7 +51,7 @@ namespace _2022.Day11
 
 		public void Solve()
 		{
-			SolvePartOne();
+			SolvePartTwo();
 		}
 
 		private void SolvePartOne()
@@ -75,22 +75,28 @@ namespace _2022.Day11
 					}
 				}
 			}
-			//foreach (var k in investigations.Keys)
-			//{
-			//	Console.WriteLine($"Monkey {k} inspected items {investigations[k]} times");
-			//}
+			foreach (var k in investigations.Keys)
+			{
+				Console.WriteLine($"Monkey {k} inspected items {investigations[k]} times");
+			}
 			var monkeyBusiness = investigations.Values.OrderByDescending(x => x).Take(2).Aggregate((x, a) => a * x);
 			Console.WriteLine($"Monkey business: {monkeyBusiness}");
 		}
 
 		private void SolvePartTwo()
 		{
-			Dictionary<int, int> investigations = new();
+			Dictionary<int, long> investigations = new();
 			foreach (var monkey in this.Monkeys)
 			{
 				investigations[monkey.Id] = 0;
 			}
-			int rounds = 20;
+			int rounds = 10000;
+			var magicReducer = this.Monkeys.Select(x => x.Divisor).Aggregate((a, x) => a * x);
+
+			foreach (var monkey in Monkeys)
+			{
+				monkey.Reducer = magicReducer;
+			}
 
 			for (int round = 0; round < rounds; round++)
 			{
@@ -101,13 +107,13 @@ namespace _2022.Day11
 						investigations[monkey.Id] += 1;
 						var throwToMonkey = this.Monkeys.First(x => x.Id == thrownItem.monkey);
 						throwToMonkey.CatchItem(thrownItem.worryLevel);
-					}; while
+					};
 				}
 			}
-			//foreach (var k in investigations.Keys)
-			//{
-			//	Console.WriteLine($"Monkey {k} inspected items {investigations[k]} times");
-			//}
+			foreach (var k in investigations.Keys)
+			{
+				Console.WriteLine($"Monkey {k} inspected items {investigations[k]} times");
+			}
 			var monkeyBusiness = investigations.Values.OrderByDescending(x => x).Take(2).Aggregate((x, a) => a * x);
 			Console.WriteLine($"Monkey business: {monkeyBusiness}");
 		}

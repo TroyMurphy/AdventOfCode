@@ -4,7 +4,7 @@ namespace _2022.Day7
 {
 	public class Folder
 	{
-		public Folder? Parent { get; set; }
+		public Folder Parent { get; set; }
 
 		public string Name { get; set; }
 
@@ -14,7 +14,7 @@ namespace _2022.Day7
 
 		public double? CachedWeight { get; set; }
 
-		public Folder(string name, Folder? parent)
+		public Folder(string name, Folder parent)
 		{
 			this.Name = name;
 			this.Files = new List<File>();
@@ -49,7 +49,7 @@ namespace _2022.Day7
 			Console.Write(String.Concat(Enumerable.Repeat("  ", depth)));
 			Console.Write($"- {this.Name} (dir, size={this.CachedWeight})");
 			Console.WriteLine();
-			foreach(var f in this.Files)
+			foreach (var f in this.Files)
 			{
 				Console.Write(String.Concat(Enumerable.Repeat("  ", depth + 1)));
 				Console.Write("- ");
@@ -57,7 +57,7 @@ namespace _2022.Day7
 				Console.Write($" (file, size={f.Size})");
 				Console.WriteLine();
 			}
-			foreach(var f in this.SubFolders)
+			foreach (var f in this.SubFolders)
 			{
 				f.Write(depth + 1);
 			}
@@ -69,7 +69,7 @@ namespace _2022.Day7
 				Console.Write($"{this.CachedWeight}");
 				Console.WriteLine();
 			}
-			foreach(var f in this.SubFolders)
+			foreach (var f in this.SubFolders)
 			{
 				f.WriteOut(depth + 1);
 			}
@@ -90,7 +90,7 @@ namespace _2022.Day7
 			{
 				direct = this.CachedWeight.Value;
 			}
-			foreach(var f in this.SubFolders)
+			foreach (var f in this.SubFolders)
 			{
 				indirect += f.SolutionWeight(sum);
 			}
