@@ -29,6 +29,13 @@ public class Grid<T>
 
 	public T? GetValueAt(int x, int y) => this.matrix[y, x];
 
+	public void SetValueAt(int x, int y, T v)
+	{
+		var point = this.Points.First(p => p.X == x && p.Y == y);
+		point.Value = v;
+		this.matrix[y, x] = v;
+	}
+
 	public void Print()
 	{
 		for (int i = 0; i < this.GetHeight(); i++)
@@ -55,6 +62,44 @@ public class Grid<T>
 		}
 	}
 
+	public static void PrintCharPath(double[,] input, HashSet<(int, int)> pathPoints)
+	{
+		for (int i = 0; i < input.GetLength(0); i++)
+		{
+			for (int j = 0; j < input.GetLength(1); j++)
+			{
+				if (pathPoints.Contains((j, i)))
+				{
+					Console.BackgroundColor = ConsoleColor.DarkRed;
+					Console.ForegroundColor = ConsoleColor.White;
+				}
+				Console.Write($"{(char)(input[i, j] + 97)}");
+				Console.BackgroundColor = ConsoleColor.Black;
+				Console.ForegroundColor = ConsoleColor.White;
+			}
+			Console.WriteLine();
+		}
+	}
+
+	public static void PrintCharPath(int[,] input, HashSet<(int, int)> pathPoints)
+	{
+		for (int i = 0; i < input.GetLength(0); i++)
+		{
+			for (int j = 0; j < input.GetLength(1); j++)
+			{
+				if (pathPoints.Contains((j, i)))
+				{
+					Console.BackgroundColor = ConsoleColor.DarkRed;
+					Console.ForegroundColor = ConsoleColor.White;
+				}
+				Console.Write($"{(char)(input[i, j] + 97)}");
+				Console.BackgroundColor = ConsoleColor.Black;
+				Console.ForegroundColor = ConsoleColor.White;
+			}
+			Console.WriteLine();
+		}
+	}
+
 	public static void PrintPath(T[,] input, HashSet<(int, int)> pathPoints)
 	{
 		for (int i = 0; i < input.GetLength(0); i++)
@@ -66,7 +111,8 @@ public class Grid<T>
 					Console.BackgroundColor = ConsoleColor.DarkRed;
 					Console.ForegroundColor = ConsoleColor.White;
 				}
-				Console.Write($"{input[i, j]}");
+				Console.Write($"{input[i, j].ToString().PadLeft(3, ' ')}");
+				Console.Write(" ");
 				Console.BackgroundColor = ConsoleColor.Black;
 				Console.ForegroundColor = ConsoleColor.White;
 			}
@@ -77,5 +123,4 @@ public class Grid<T>
 	public int GetWidth() => this.matrix.GetLength(1);
 
 	public int GetHeight() => this.matrix.GetLength(0);
-
 }

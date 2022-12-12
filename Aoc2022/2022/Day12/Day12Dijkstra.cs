@@ -1,15 +1,16 @@
 namespace Grids;
 
-public class Algorithms
+public class Day12Dijkstra
 {
 	private readonly Grid<int> _grid;
 
-	public Algorithms(Grid<int> grid)
+	public Day12Dijkstra(Grid<int> grid)
 	{
 		this._grid = grid;
 	}
 
-	public (double[,], List<(int, int)>) SolveDijkstra(int startX = 0, int startY = 0, (int, int)? to = null)
+	// the solution matrix, and list of points that produce solution
+	public (double[,] grid, List<(int, int)> path) SolveDijkstra((int x, int y) end, (int x, int y) start, bool weighted = false)
 	{
 		double[,] solution = new double[this._grid.GetHeight(), this._grid.GetWidth()];
 
@@ -21,15 +22,14 @@ public class Algorithms
 			}
 		}
 
-		if (to == null)
-		{
-			to = (solution.GetLength(0) - 1, solution.GetLength(1) - 1);
-		}
-
-		var (sol, previous) = ShortestPath((0, 0), solution);
+		var (sol, previous) = ShortestPath(start, solution, weighted);
 		var path = new List<(int, int)>();
 
-		var node = to;
+		(int x, int y)? node = end;
+		if (!previous.ContainsKey(node.Value))
+		{
+			return (sol, path);
+		}
 		while (node.HasValue)
 		{
 			path.Add(node.Value);
@@ -40,16 +40,15 @@ public class Algorithms
 		return (sol, path);
 	}
 
-	public (double[,], Dictionary<(int, int), (int, int)?>) ShortestPath((int, int) start, double[,] solution)
+	public (double[,], Dictionary<(int, int), (int, int)?>) ShortestPath((int, int) start, double[,] solution, bool weighted)
 	{
 		var (xStart, yStart) = start;
-		this._grid.matrix[yStart, xStart] = 0;
 
 		var toVisit = new PriorityQueue<((int, int), double), double>(this._grid.GetWidth() * this._grid.GetHeight());
 		// dictionary of visited nodes mapped to the best node to visit from
 		var previous = new Dictionary<(int, int), (int, int)?>();
 		solution[yStart, xStart] = 0;
-		//pick a cell to visit first
+		//pick a cell to visit first. Top priority
 		toVisit.Enqueue((start, 0), 0);
 		previous[start] = null;
 
@@ -70,7 +69,7 @@ public class Algorithms
 				if (previous.ContainsKey((nx, ny)))
 					continue;
 				// 	// otherwise, update the cell value with the reachable weight from the current cell.
-				var weightToNeighbor = w + n.Value;
+				var weightToNeighbor = weighted ? w + n.Value : w + 1;
 				var neighborWeight = solution[ny, nx];
 
 				if (weightToNeighbor < neighborWeight)
@@ -104,9 +103,11 @@ public class Algorithms
 				{
 					continue;
 				}
+
 				result.Add(new Point<int>(newX, newY, graph.matrix[newY, newX]));
 			}
 		}
-		return result;
+		var centerVal = graph.matrix[y, x];
+		return result.Where(x => centerVal - x.Value >= -1).ToList();
 	}
 }

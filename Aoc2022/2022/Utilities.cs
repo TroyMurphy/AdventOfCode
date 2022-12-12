@@ -22,7 +22,6 @@ public class Utilities
 
 	public static Grid<int> ParseGrid(IEnumerable<string> lines)
 	{
-
 		var points = new List<Point<int>>();
 
 		int i = 0;
@@ -38,9 +37,36 @@ public class Utilities
 		}
 		return new Grid<int>(points);
 	}
+
+	public static Grid<int> ParseAlphaGrid(IEnumerable<string> lines)
+	{
+		var points = new List<Point<int>>();
+
+		int i = 0;
+		foreach (var line in lines)
+		{
+			int j = 0;
+			foreach (var x in line.ToCharArray())
+			{
+				var val = (int)x - (int)'a';
+				if (x == 'S')
+				{
+					val = -1;
+				}
+				if (x == 'E')
+				{
+					val = -2;
+				}
+				points.Add(new Point<int>(j, i, val));
+				j++;
+			}
+			i++;
+		}
+		return new Grid<int>(points);
+	}
+
 	public static JaggedGrid<int> ParseJaggedGrid(IEnumerable<string> lines)
 	{
-
 		var points = new List<Point<int>>();
 
 		int i = 0;
