@@ -12,7 +12,7 @@ namespace _2022.Day13
 
 		public Day13()
 		{
-			this._lines = Utilities.ReadLines(@"./Day13/inputs/demo1.txt");
+			this._lines = Utilities.ReadLines(@"./Day13/inputs/input.txt");
 		}
 
 		public void Solve()
@@ -34,6 +34,7 @@ namespace _2022.Day13
 				index++;
 			}
 			Console.WriteLine($"Good packets are indexes {string.Join(",", goodIndecies)}");
+			Console.WriteLine($"Answer is {goodIndecies.Sum()}");
 		}
 
 		private void SolvePartTwo()
