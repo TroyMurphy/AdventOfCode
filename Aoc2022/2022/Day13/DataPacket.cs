@@ -34,7 +34,7 @@
 		{
 			if (leftList.First is null || rightList.First is null)
 			{
-				return rightList.First is null;
+				return rightList.First is not null;
 			}
 
 			var leftItems = PullItems(leftList);
@@ -82,7 +82,16 @@
 				}
 				return itemLeft < itemRight;
 			}
-			return null;
+			// item == count which is outside left range
+			try
+			{
+				_ = right[index];
+				return true;
+			}
+			catch
+			{
+				return null;
+			}
 		}
 
 		public static List<int> PullItems(LinkedList<PacketValue> leftList)
@@ -125,7 +134,7 @@
 			{
 				items.RemoveFirst();
 			}
-			while (items.First is not null && items.First.Value.Number is null)
+			if (items.First is not null && items.First.Value.Number is null)
 			{
 				items.RemoveFirst();
 			}

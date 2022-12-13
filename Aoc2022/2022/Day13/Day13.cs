@@ -12,7 +12,7 @@ namespace _2022.Day13
 
 		public Day13()
 		{
-			this._lines = Utilities.ReadLines(@"./Day13/inputs/demo2.txt");
+			this._lines = Utilities.ReadLines(@"./Day13/inputs/demo1.txt");
 		}
 
 		public void Solve()
