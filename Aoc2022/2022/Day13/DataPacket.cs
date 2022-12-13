@@ -10,6 +10,11 @@
 			var depth = 0;
 			foreach (var c in input)
 			{
+				if (c == ']')
+				{
+					values.AddLast(new PacketValue(null, depth));
+				}
+
 				depth += c switch
 				{
 					'[' => 1,
@@ -39,11 +44,11 @@
 			var rightCdr = DropItems(rightList, rightItems);
 
 			var result = CompareLists(leftItems, rightItems);
-			if (result == null)
+			if (result is null)
 			{
 				return ComparePacket(leftCdr, rightCdr);
 			}
-			return result;
+			return result.Value;
 		}
 
 		public static bool? CompareLists(List<int> left, List<int> right)
@@ -90,10 +95,25 @@
 			List<int> items = new() { };
 
 			LinkedListNode<PacketValue> firstLeft = leftList.First;
+
+			if (firstLeft.Value.Number is null)
+			{
+				return items;
+			}
+			items.Add(firstLeft.Value.Number.Value);
+
 			LinkedListNode<PacketValue>? nextLeft = firstLeft.Next;
 			while (nextLeft is not null && nextLeft.Value.Depth == firstLeft.Value.Depth)
 			{
-				items.Add(nextLeft.Value.Number);
+				// remove the empty null at the end of every list
+				if (nextLeft.Value.Number is not null)
+				{
+					items.Add(nextLeft.Value.Number.Value);
+				}
+				else
+				{
+					break;
+				}
 				nextLeft = nextLeft.Next;
 			}
 			return items;
@@ -102,6 +122,10 @@
 		public static LinkedList<PacketValue> DropItems(LinkedList<PacketValue> items, List<int> toDelete)
 		{
 			foreach (var _ in toDelete)
+			{
+				items.RemoveFirst();
+			}
+			while (items.First is not null && items.First.Value.Number is null)
 			{
 				items.RemoveFirst();
 			}

@@ -8,10 +8,10 @@ namespace _2022.Day13
 {
 	public class PacketValue
 	{
-		public int Number { get; set; }
+		public int? Number { get; set; }
 		public int Depth { get; set; }
 
-		public PacketValue(int value, int depth)
+		public PacketValue(int? value, int depth)
 		{
 			this.Number = value;
 			this.Depth = depth;
