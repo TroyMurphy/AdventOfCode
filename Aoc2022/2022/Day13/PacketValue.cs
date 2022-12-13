@@ -6,15 +6,31 @@ using System.Threading.Tasks;
 
 namespace _2022.Day13
 {
+	public enum PacketType
+	{
+		ListStart,
+		ListEnd,
+		Number
+	}
+
 	public class PacketValue
 	{
-		public int? Number { get; set; }
-		public int Depth { get; set; }
+		public PacketType Type { get; set; }
+		private int? Integer { get; set; }
 
-		public PacketValue(int? value, int depth)
+		public int GetNumber()
 		{
-			this.Number = value;
-			this.Depth = depth;
+			if (this.Type != PacketType.Number || this.Integer == null)
+			{
+				throw new Exception();
+			}
+			return this.Integer.Value;
+		}
+
+		public PacketValue(int? value, PacketType type)
+		{
+			this.Integer = value;
+			this.Type = type;
 		}
 	}
 }

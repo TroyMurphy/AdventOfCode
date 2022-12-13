@@ -3,142 +3,142 @@
 	public class DataPacket
 	{
 		public LinkedList<PacketValue> PacketValues { get; set; }
+		public int? DividerIndex { get; set; } = 0;
+
+		public DataPacket(LinkedList<PacketValue> input)
+		{
+			var newValues = new LinkedList<PacketValue>();
+			foreach (var item in input)
+			{
+				newValues.AddLast(item);
+			}
+			this.PacketValues = newValues;
+		}
 
 		public DataPacket(string input)
 		{
 			var values = new LinkedList<PacketValue>();
-			var depth = 0;
-			foreach (var c in input)
+			var cIndex = 0;
+			while (cIndex < input.Length)
 			{
+				var c = input[cIndex++];
+				if (c == '[')
+				{
+					values.AddLast(new PacketValue(null, PacketType.ListStart));
+					continue;
+				}
 				if (c == ']')
 				{
-					values.AddLast(new PacketValue(null, depth));
+					values.AddLast(new PacketValue(null, PacketType.ListEnd));
+					continue;
 				}
-
-				depth += c switch
-				{
-					'[' => 1,
-					']' => -1,
-					_ => 0
-				};
-
 				if (char.IsDigit(c))
 				{
-					values.AddLast(new PacketValue(int.Parse(c.ToString()), depth));
+					List<char> digits = new() { };
+
+					// we know this isn't the last character
+					while (char.IsDigit(c))
+					{
+						digits.Add(c);
+						c = input[cIndex++];
+					}
+					values.AddLast(new PacketValue(int.Parse(new string(digits.ToArray())), PacketType.Number));
+					cIndex--;
 				}
 			}
 			this.PacketValues = values;
 		}
 
-		public static bool ComparePacket(LinkedList<PacketValue> leftList, LinkedList<PacketValue> rightList)
+		public static string GetString(LinkedList<PacketValue> input)
+		{
+			return string.Join("", input.Select(x =>
+			{
+				return x.Type switch
+				{
+					PacketType.ListStart => "[",
+					PacketType.ListEnd => "]",
+					_ => $"{x.GetNumber()},"
+				};
+			}).ToList());
+		}
+
+		public static bool? ComparePacket(LinkedList<PacketValue> leftList, LinkedList<PacketValue> rightList)
 		{
 			if (leftList.First is null || rightList.First is null)
 			{
+				if (leftList.First is null && rightList.First is null)
+				{
+					return null;
+				}
 				return rightList.First is not null;
 			}
 
-			var leftItems = PullItems(leftList);
-			var rightItems = PullItems(rightList);
+			var leftType = leftList.First.Value.Type;
+			var rightType = rightList.First.Value.Type;
 
-			var leftCdr = DropItems(leftList, leftItems);
-			var rightCdr = DropItems(rightList, rightItems);
-
-			var result = CompareLists(leftItems, rightItems);
-			if (result is null)
+			// both ints
+			if (leftType == PacketType.Number && rightType == PacketType.Number)
 			{
-				return ComparePacket(leftCdr, rightCdr);
+				if (leftList.First.Value.GetNumber() == rightList.First.Value.GetNumber())
+				{
+					leftList.RemoveFirst();
+					rightList.RemoveFirst();
+					return ComparePacket(leftList, rightList);
+				}
+				return leftList.First.Value.GetNumber() < rightList.First.Value.GetNumber();
 			}
-			return result.Value;
+			if (leftType == PacketType.Number)
+			{
+				var firstNode = leftList.First;
+				leftList.AddBefore(firstNode, new PacketValue(null, PacketType.ListStart));
+				leftList.AddAfter(firstNode, new PacketValue(null, PacketType.ListEnd));
+				return ComparePacket(leftList, rightList);
+			}
+			if (rightType == PacketType.Number)
+			{
+				var firstNode = rightList.First;
+				rightList.AddBefore(firstNode, new PacketValue(null, PacketType.ListStart));
+				rightList.AddAfter(firstNode, new PacketValue(null, PacketType.ListEnd));
+				return ComparePacket(leftList, rightList);
+			}
+			// both lists
+			var (lCar, lCdr) = GetFirst(leftList);
+			var (rCar, rCdr) = GetFirst(rightList);
+
+			// strip first element of each list down
+			lCar.RemoveFirst();
+			lCar.RemoveLast();
+			rCar.RemoveFirst();
+			rCar.RemoveLast();
+
+			var firstCompare = ComparePacket(lCar, rCar);
+			return firstCompare ?? ComparePacket(lCdr, rCdr);
 		}
 
-		public static bool? CompareLists(List<int> left, List<int> right)
+		public static (LinkedList<PacketValue> car, LinkedList<PacketValue> cdr) GetFirst(LinkedList<PacketValue> input)
 		{
-			var index = 0;
-			int itemLeft;
-			int itemRight;
-			while (index < left.Count)
+			if (input.First is null || input.First.Value.Type != PacketType.ListStart)
 			{
-				try
+				throw new Exception();
+			}
+			var car = new LinkedList<PacketValue>();
+			var depth = 0;
+			do
+			{
+				var element = input.First;
+				if (element.Value.Type == PacketType.ListStart)
 				{
-					itemLeft = left[index];
+					depth++;
 				}
-				catch
+				if (element.Value.Type == PacketType.ListEnd)
 				{
-					return true;
+					depth--;
 				}
-				try
-				{
-					itemRight = right[index];
-				}
-				catch
-				{
-					return false;
-				}
-
-				if (itemLeft == itemRight)
-				{
-					index++;
-					continue;
-				}
-				return itemLeft < itemRight;
-			}
-			// item == count which is outside left range
-			try
-			{
-				_ = right[index];
-				return true;
-			}
-			catch
-			{
-				return null;
-			}
-		}
-
-		public static List<int> PullItems(LinkedList<PacketValue> leftList)
-		{
-			if (leftList.First is null)
-			{
-				throw new Exception("Check first");
-			}
-
-			List<int> items = new() { };
-
-			LinkedListNode<PacketValue> firstLeft = leftList.First;
-
-			if (firstLeft.Value.Number is null)
-			{
-				return items;
-			}
-			items.Add(firstLeft.Value.Number.Value);
-
-			LinkedListNode<PacketValue>? nextLeft = firstLeft.Next;
-			while (nextLeft is not null && nextLeft.Value.Depth == firstLeft.Value.Depth)
-			{
-				// remove the empty null at the end of every list
-				if (nextLeft.Value.Number is not null)
-				{
-					items.Add(nextLeft.Value.Number.Value);
-				}
-				else
-				{
-					break;
-				}
-				nextLeft = nextLeft.Next;
-			}
-			return items;
-		}
-
-		public static LinkedList<PacketValue> DropItems(LinkedList<PacketValue> items, List<int> toDelete)
-		{
-			foreach (var _ in toDelete)
-			{
-				items.RemoveFirst();
-			}
-			if (items.First is not null && items.First.Value.Number is null)
-			{
-				items.RemoveFirst();
-			}
-			return items;
+				car.AddLast(element.Value);
+				input.RemoveFirst();
+				continue;
+			} while (depth > 0);
+			return (car, input);
 		}
 	}
 }
