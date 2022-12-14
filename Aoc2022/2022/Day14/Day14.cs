@@ -8,11 +8,12 @@ namespace _2022.Day14
 	public class Day14
 	{
 		public readonly IEnumerable<string> _lines;
-		public Grid<char?> grid;
+		public Day14Grid<char?> grid;
 		public int floor;
 
 		public Day14()
 		{
+			//this._lines = Utilities.ReadLines(@"./Day14/inputs/demo1.txt");
 			this._lines = Utilities.ReadLines(@"./Day14/inputs/input.txt");
 
 			var points = new List<Point<char?>>();
@@ -48,7 +49,8 @@ namespace _2022.Day14
 					points.AddRange(pointCoords.Select(p => new Point<char?>(p.Item1, p.Item2, '#')));
 				}
 			}
-			this.grid = new Grid<char?>(points);
+			points.Add(new Point<char?>(1000, floor + 1, null));
+			this.grid = new Day14Grid<char?>(points, false);
 			floor = grid.Points.Max(p => p.Y);
 		}
 
@@ -78,24 +80,19 @@ namespace _2022.Day14
 
 		private void SolvePartTwo()
 		{
-			var grains = 0;
 			while (true)
 			{
 				var response = DropGrainWithFloor();
-				if (response == 1)
+				if (response == -1)
 				{
-					grains++;
-				}
-				else
-				{
-					// returns -1 when last grain stops at target.
-					grains++;
 					break;
 				}
 			}
+			var grains = grid.Points.Where(p => p.Value == 'O').Count();
 			Console.WriteLine($"Grains dropped was {grains}");
 
-			var newGrid = new Grid<char?>(grid.Points, true);
+			var newGrid = new Day14Grid<char?>(grid.Points, true);
+			PrintFromColumn(newGrid, 485);
 		}
 
 		public int DropGrainWithFloor(int x = 500, int y = 0)
@@ -114,22 +111,34 @@ namespace _2022.Day14
 				}
 				var oldy = iy;
 				peek = (peek.x, peek.y + 1);
-				if (grid.GetValueAt(peek.x, peek.y) == null)
+				var rocksBelow = grid.Points.Where(p => p.X == ix && p.Y > iy).Select(p => p.Y);
+				if (rocksBelow.Any())
 				{
+					peek = (peek.x, rocksBelow.Min());
+					(ix, iy) = (peek.x, peek.y - 1);
+				}
+				else
+				{
+					grid.SetValueAt(ix, floor + 1, 'O');
+					continue;
+				}
+
+				//if (grid.GetValueAt(peek.x, peek.y) == null)
+				//{
+				//	(ix, iy) = peek;
+				//	continue;
+				//}
+				(int x, int y) peekSide = (peek.x - 1, peek.y);
+				if (grid.GetValueAt(peekSide.x, peekSide.y) == null)
+				{
+					peek = peekSide;
 					(ix, iy) = peek;
 					continue;
 				}
-				(int x, int y) peekLeft = (peek.x - 1, peek.y);
-				if (grid.GetValueAt(peekLeft.x, peekLeft.y) == null)
+				peekSide = (peek.x + 1, peek.y);
+				if (grid.GetValueAt(peekSide.x, peekSide.y) == null)
 				{
-					peek = peekLeft;
-					(ix, iy) = peek;
-					continue;
-				}
-				(int x, int y) peekRight = (peek.x + 1, peek.y);
-				if (grid.GetValueAt(peekRight.x, peekRight.y) == null)
-				{
-					peek = peekRight;
+					peek = peekSide;
 					(ix, iy) = peek;
 					continue;
 				}
@@ -162,7 +171,11 @@ namespace _2022.Day14
 			while (peek.y < floor && !stopped)
 			{
 				var oldy = iy;
+
 				peek = (peek.x, peek.y + 1);
+				var closesRockBelow = grid.Points.Where(p => p.X == ix).Select(p => p.Y).Min(y => y);
+				(ix, iy) = (peek.x, closesRockBelow - 1);
+
 				if (grid.GetValueAt(peek.x, peek.y) == null)
 				{
 					(ix, iy) = peek;
@@ -195,11 +208,11 @@ namespace _2022.Day14
 			return -1;
 		}
 
-		public void PrintFromColumn(Grid<char?> input, int startJ)
+		public void PrintFromColumn(Day14Grid<char?> input, int startJ, int endJ = 520)
 		{
 			for (int i = 0; i < input.GetHeight(); i++)
 			{
-				for (int j = startJ; j < input.GetWidth(); j++)
+				for (int j = startJ; j < input.GetWidth() && j < endJ; j++)
 				{
 					Console.Write(input.Matrix[i, j] is null ? "." : $"{input.Matrix[i, j]}");
 				}

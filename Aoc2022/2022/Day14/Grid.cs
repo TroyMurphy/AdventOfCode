@@ -1,18 +1,18 @@
 ﻿namespace Grids;
 
-public class Grid<T>
+public class Day14Grid<T>
 {
 	private bool _keepMatrix { get; set; }
 	public T?[,]? Matrix { get; set; }
 
-	public HashSet<Point<T?>> Points { get; set; }
+	public List<Point<T?>> Points { get; set; }
 
 	public int MaxX { get; init; }
 	public int MaxY { get; init; }
 
-	public Grid(List<Point<T?>> points, bool keepMatrix = false)
+	public Day14Grid(List<Point<T>> points, bool keepMatrix = false)
 	{
-		this.Points = new HashSet<Point<T?>>(points);
+		this.Points = points;
 		this.MaxX = points.Select(point => point.X).Max();
 		this.MaxY = points.Select(point => point.Y).Max();
 

@@ -7,14 +7,12 @@ namespace _2022.Day8
 		public readonly IEnumerable<string> _lines;
 		public Grid<int> grid;
 
-
 		public Day8()
 		{
 			//this._lines = Utilities.ReadLines(@"./Day8/inputs/input.txt");
 			this._lines = Utilities.ReadLines(@"./Day8/inputs/input.txt");
 			this.grid = Utilities.ParseGrid(this._lines);
 		}
-
 
 		public void Solve()
 		{
@@ -33,7 +31,6 @@ namespace _2022.Day8
 			var r = this.grid.Points.Select(x => ScenicScore(x)).Max();
 
 			Console.WriteLine($"Max scenic score is {r}");
-
 		}
 
 		public bool TreeVisible(Point<int> tree)
@@ -41,9 +38,9 @@ namespace _2022.Day8
 			//visible left
 			var visible = !grid.Points.Where(x => x.X < tree.X && x.Y == tree.Y).Any(x => x.Value >= tree.Value);
 			//visible right
-			visible |= !grid.Points.Where(x => x.X > tree.X && x.Y == tree.Y).Any(x => x.Value >= tree.Value); 
+			visible |= !grid.Points.Where(x => x.X > tree.X && x.Y == tree.Y).Any(x => x.Value >= tree.Value);
 			//visible down
-			visible |= !grid.Points.Where(x => x.X == tree.X && x.Y > tree.Y).Any(x => x.Value >= tree.Value); 
+			visible |= !grid.Points.Where(x => x.X == tree.X && x.Y > tree.Y).Any(x => x.Value >= tree.Value);
 			//visible up
 			visible |= !grid.Points.Where(x => x.X == tree.X && x.Y < tree.Y).Any(x => x.Value >= tree.Value);
 
@@ -53,7 +50,7 @@ namespace _2022.Day8
 		public static int CountTrees(int val, IEnumerable<int> trees)
 		{
 			var r = 0;
-			foreach(var t in trees)
+			foreach (var t in trees)
 			{
 				r++;
 				if (t >= val)
@@ -72,7 +69,6 @@ namespace _2022.Day8
 			score *= CountTrees(start.Value, LookDown(start));
 			return score;
 		}
-
 
 		public IEnumerable<int> LookLeft(Point<int> start)
 		{
@@ -93,6 +89,7 @@ namespace _2022.Day8
 				yield return grid.GetValueAt(x++, y);
 			}
 		}
+
 		public IEnumerable<int> LookUp(Point<int> start)
 		{
 			var (x, y) = start.GetCoord();
@@ -102,6 +99,7 @@ namespace _2022.Day8
 				yield return grid.GetValueAt(x, y--);
 			}
 		}
+
 		public IEnumerable<int> LookDown(Point<int> start)
 		{
 			var (x, y) = start.GetCoord();
