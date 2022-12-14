@@ -1,14 +1,12 @@
 using Grids;
-using System.ComponentModel;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace _2022.Day14
 {
 	public class Day14
 	{
 		public readonly IEnumerable<string> _lines;
-		public Day14Grid<char?> grid;
+		public HashSet<(int X, int Y)> map;
+		public int rockCount;
 		public int floor;
 
 		public Day14()
@@ -16,7 +14,8 @@ namespace _2022.Day14
 			//this._lines = Utilities.ReadLines(@"./Day14/inputs/demo1.txt");
 			this._lines = Utilities.ReadLines(@"./Day14/inputs/input.txt");
 
-			var points = new List<Point<char?>>();
+			this.map = new HashSet<(int, int)>();
+
 			foreach (var line in this._lines)
 			{
 				var coords = line.Split(new string[] { ",", "->" }, StringSplitOptions.RemoveEmptyEntries);
@@ -46,12 +45,11 @@ namespace _2022.Day14
 							).Select(xValue => (xValue, y1))
 						);
 					}
-					points.AddRange(pointCoords.Select(p => new Point<char?>(p.Item1, p.Item2, '#')));
+					map.UnionWith(pointCoords.Select(p => (p.Item1, p.Item2)));
 				}
 			}
-			points.Add(new Point<char?>(1000, floor + 1, null));
-			this.grid = new Day14Grid<char?>(points, false);
-			floor = grid.Points.Max(p => p.Y);
+			rockCount = map.Count();
+			floor = map.Max(p => p.Y);
 		}
 
 		public void Solve()
@@ -80,19 +78,18 @@ namespace _2022.Day14
 
 		private void SolvePartTwo()
 		{
+			var it = 0;
 			while (true)
 			{
+				it++;
 				var response = DropGrainWithFloor();
 				if (response == -1)
 				{
 					break;
 				}
 			}
-			var grains = grid.Points.Where(p => p.Value == 'O').Count();
+			var grains = map.Count() - rockCount;
 			Console.WriteLine($"Grains dropped was {grains}");
-
-			var newGrid = new Day14Grid<char?>(grid.Points, true);
-			PrintFromColumn(newGrid, 485);
 		}
 
 		public int DropGrainWithFloor(int x = 500, int y = 0)
@@ -106,37 +103,25 @@ namespace _2022.Day14
 			{
 				if (iy == floor + 1)
 				{
-					grid.SetValueAt(ix, iy, 'O');
+					map.Add((ix, iy));
 					break;
 				}
 				var oldy = iy;
 				peek = (peek.x, peek.y + 1);
-				var rocksBelow = grid.Points.Where(p => p.X == ix && p.Y > iy).Select(p => p.Y);
-				if (rocksBelow.Any())
+				if (!map.Contains((peek.x, peek.y)))
 				{
-					peek = (peek.x, rocksBelow.Min());
-					(ix, iy) = (peek.x, peek.y - 1);
-				}
-				else
-				{
-					grid.SetValueAt(ix, floor + 1, 'O');
+					(ix, iy) = peek;
 					continue;
 				}
-
-				//if (grid.GetValueAt(peek.x, peek.y) == null)
-				//{
-				//	(ix, iy) = peek;
-				//	continue;
-				//}
 				(int x, int y) peekSide = (peek.x - 1, peek.y);
-				if (grid.GetValueAt(peekSide.x, peekSide.y) == null)
+				if (!map.Contains((peekSide.x, peekSide.y)))
 				{
 					peek = peekSide;
 					(ix, iy) = peek;
 					continue;
 				}
 				peekSide = (peek.x + 1, peek.y);
-				if (grid.GetValueAt(peekSide.x, peekSide.y) == null)
+				if (!map.Contains((peekSide.x, peekSide.y)))
 				{
 					peek = peekSide;
 					(ix, iy) = peek;
@@ -147,7 +132,8 @@ namespace _2022.Day14
 					stopped = true;
 				}
 			}
-			grid.SetValueAt(ix, iy, 'O');
+
+			map.Add((ix, iy));
 			if (ix == 500 && iy == 0)
 			{
 				return -1;
@@ -173,23 +159,23 @@ namespace _2022.Day14
 				var oldy = iy;
 
 				peek = (peek.x, peek.y + 1);
-				var closesRockBelow = grid.Points.Where(p => p.X == ix).Select(p => p.Y).Min(y => y);
+				var closesRockBelow = map.Where(p => p.X == ix).Select(p => p.Y).Min(y => y);
 				(ix, iy) = (peek.x, closesRockBelow - 1);
 
-				if (grid.GetValueAt(peek.x, peek.y) == null)
+				if (!map.Contains((peek.x, peek.y)))
 				{
 					(ix, iy) = peek;
 					continue;
 				}
 				(int x, int y) peekLeft = (peek.x - 1, peek.y);
-				if (grid.GetValueAt(peekLeft.x, peekLeft.y) == null)
+				if (!map.Contains((peekLeft.x, peekLeft.y)))
 				{
 					peek = peekLeft;
 					(ix, iy) = peek;
 					continue;
 				}
 				(int x, int y) peekRight = (peek.x + 1, peek.y);
-				if (grid.GetValueAt(peekRight.x, peekRight.y) == null)
+				if (!map.Contains((peekRight.x, peekRight.y)))
 				{
 					peek = peekRight;
 					(ix, iy) = peek;
@@ -200,7 +186,7 @@ namespace _2022.Day14
 					stopped = true;
 				}
 			}
-			grid.SetValueAt(ix, iy, 'O');
+			map.Add((ix, iy));
 			if (stopped == true)
 			{
 				return 1;
