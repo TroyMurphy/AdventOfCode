@@ -1,4 +1,6 @@
 using Grids;
+using System.Drawing;
+using System.Security.Cryptography;
 
 namespace _2022.Day14
 {
@@ -7,12 +9,13 @@ namespace _2022.Day14
 		public readonly IEnumerable<string> _lines;
 		public HashSet<(int X, int Y)> map;
 		public int rockCount;
+		public HashSet<(int, int)> rocks;
 		public int floor;
 
 		public Day14()
 		{
-			//this._lines = Utilities.ReadLines(@"./Day14/inputs/demo1.txt");
-			this._lines = Utilities.ReadLines(@"./Day14/inputs/input.txt");
+			this._lines = Utilities.ReadLines(@"./Day14/inputs/demo1.txt");
+			//this._lines = Utilities.ReadLines(@"./Day14/inputs/input.txt");
 
 			this.map = new HashSet<(int, int)>();
 
@@ -49,6 +52,7 @@ namespace _2022.Day14
 				}
 			}
 			rockCount = map.Count();
+			rocks = new HashSet<(int, int)>(map);
 			floor = map.Max(p => p.Y);
 		}
 
@@ -56,6 +60,46 @@ namespace _2022.Day14
 		{
 			//SolvePartOne();
 			SolvePartTwo();
+			DrawPrettyGrid();
+		}
+
+		public void DrawPrettyGrid()
+		{
+			var saltColor = ConsoleColor.Yellow;
+			var rockColor = ConsoleColor.DarkGray;
+			var backColor = ConsoleColor.Black;
+			var sw = map.Select(x => x.X).Min();
+			var h = map.Select(x => x.Y).Max();
+			var w = map.Select(x => x.X).Max();
+
+			for (int y = 0; y <= h; y++)
+			{
+				for (int x = sw; x < w; x++)
+				{
+					if (rocks.Contains((x, y)))
+					{
+						Console.BackgroundColor = rockColor;
+						Console.Write(" ");
+						Console.BackgroundColor = backColor;
+						continue;
+					}
+					if (map.Contains((x, y)))
+					{
+						Console.BackgroundColor = saltColor;
+						Console.Write(" ");
+						Console.BackgroundColor = backColor;
+						continue;
+					}
+					Console.BackgroundColor = backColor;
+					Console.Write(" ");
+				}
+				Console.ForegroundColor = backColor;
+				Console.WriteLine();
+			}
+			Console.BackgroundColor = rockColor;
+			Console.WriteLine();
+			Console.BackgroundColor = backColor;
+			Console.WriteLine();
 		}
 
 		private void SolvePartOne()
@@ -192,18 +236,6 @@ namespace _2022.Day14
 				return 1;
 			}
 			return -1;
-		}
-
-		public void PrintFromColumn(Day14Grid<char?> input, int startJ, int endJ = 520)
-		{
-			for (int i = 0; i < input.GetHeight(); i++)
-			{
-				for (int j = startJ; j < input.GetWidth() && j < endJ; j++)
-				{
-					Console.Write(input.Matrix[i, j] is null ? "." : $"{input.Matrix[i, j]}");
-				}
-				Console.WriteLine();
-			}
 		}
 	}
 }
