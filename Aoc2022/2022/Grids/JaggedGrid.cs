@@ -31,6 +31,7 @@ public class JaggedGrid<T>
 	}
 
 	public T?[] GetRow(int y) => matrix[y];
+
 	public T?[] GetCol(int x) => invMatrix[x];
 
 	public void PopulateMatrix(List<Point<T?>> points)
@@ -64,7 +65,6 @@ public class JaggedGrid<T>
 			for (int j = 0; j < input[i].Length; j++)
 			{
 				Console.Write($"{input[i][j]}");
-				Console.Write(" ");
 			}
 			Console.WriteLine();
 		}
@@ -98,5 +98,4 @@ public class JaggedGrid<T>
 	public int GetWidth() => this.matrix[0].Length;
 
 	public int GetHeight() => this.matrix.Length;
-
 }

@@ -43,7 +43,7 @@ public class Dijkstra
 	public (double[,], Dictionary<(int, int), (int, int)?>) ShortestPath((int, int) start, double[,] solution)
 	{
 		var (xStart, yStart) = start;
-		this._grid.matrix[yStart, xStart] = 0;
+		this._grid.Matrix[yStart, xStart] = 0;
 
 		var toVisit = new PriorityQueue<((int, int), double), double>(this._grid.GetWidth() * this._grid.GetHeight());
 		// dictionary of visited nodes mapped to the best node to visit from
@@ -104,7 +104,7 @@ public class Dijkstra
 				{
 					continue;
 				}
-				result.Add(new Point<int>(newX, newY, graph.matrix[newY, newX]));
+				result.Add(new Point<int>(newX, newY, graph.Matrix[newY, newX]));
 			}
 		}
 		return result;

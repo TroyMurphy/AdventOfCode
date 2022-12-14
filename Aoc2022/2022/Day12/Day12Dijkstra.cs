@@ -104,10 +104,10 @@ public class Day12Dijkstra
 					continue;
 				}
 
-				result.Add(new Point<int>(newX, newY, graph.matrix[newY, newX]));
+				result.Add(new Point<int>(newX, newY, graph.Matrix[newY, newX]));
 			}
 		}
-		var centerVal = graph.matrix[y, x];
+		var centerVal = graph.Matrix[y, x];
 		return result.Where(x => centerVal - x.Value >= -1).ToList();
 	}
 }

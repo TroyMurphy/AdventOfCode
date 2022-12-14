@@ -2,9 +2,9 @@
 
 public class Grid<T>
 {
-	public T?[,] matrix { get; set; }
+	public T?[,] Matrix { get; set; }
 
-	public List<Point<T>> Points { get; set; }
+	public List<Point<T?>> Points { get; set; }
 
 	public int MaxX { get; init; }
 	public int MaxY { get; init; }
@@ -15,25 +15,30 @@ public class Grid<T>
 		this.MaxX = points.Select(point => point.X).Max();
 		this.MaxY = points.Select(point => point.Y).Max();
 
-		this.matrix = new T[this.MaxY + 1, this.MaxX + 1];
+		this.Matrix = new T[this.MaxY + 1, this.MaxX + 1];
 		this.PopulateMatrix(points);
 	}
 
-	public void PopulateMatrix(List<Point<T>> points)
+	public void PopulateMatrix(List<Point<T?>> points)
 	{
 		foreach (var point in points)
 		{
-			this.matrix[point.Y, point.X] = point.Value;
+			this.Matrix[point.Y, point.X] = point.Value;
 		}
 	}
 
-	public T? GetValueAt(int x, int y) => this.matrix[y, x];
+	public T? GetValueAt(int x, int y) => this.Matrix[y, x];
 
 	public void SetValueAt(int x, int y, T v)
 	{
-		var point = this.Points.First(p => p.X == x && p.Y == y);
+		this.Matrix[y, x] = v;
+		var point = this.Points.FirstOrDefault(p => p.X == x && p.Y == y);
+		if (point == null)
+		{
+			this.Points.Add(new Point<T?>(x, y, v));
+			return;
+		}
 		point.Value = v;
-		this.matrix[y, x] = v;
 	}
 
 	public void Print()
@@ -42,7 +47,7 @@ public class Grid<T>
 		{
 			for (int j = 0; j < this.GetWidth(); j++)
 			{
-				Console.Write(this.matrix[i, j] is null ? "." : $"{this.matrix[i, j]}");
+				Console.Write(this.Matrix[i, j] is null ? "." : $"{this.Matrix[i, j]}");
 				Console.Write(" ");
 			}
 			Console.WriteLine();
@@ -120,7 +125,7 @@ public class Grid<T>
 		}
 	}
 
-	public int GetWidth() => this.matrix.GetLength(1);
+	public int GetWidth() => this.Matrix.GetLength(1);
 
-	public int GetHeight() => this.matrix.GetLength(0);
+	public int GetHeight() => this.Matrix.GetLength(0);
 }
