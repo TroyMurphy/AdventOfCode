@@ -2,21 +2,26 @@
 
 public class Grid<T>
 {
-	public T?[,] Matrix { get; set; }
+	private bool _keepMatrix { get; set; }
+	public T?[,]? Matrix { get; set; }
 
 	public List<Point<T?>> Points { get; set; }
 
 	public int MaxX { get; init; }
 	public int MaxY { get; init; }
 
-	public Grid(List<Point<T>> points)
+	public Grid(List<Point<T>> points, bool keepMatrix = false)
 	{
 		this.Points = points;
 		this.MaxX = points.Select(point => point.X).Max();
 		this.MaxY = points.Select(point => point.Y).Max();
 
-		this.Matrix = new T[this.MaxY + 1, this.MaxX + 1];
-		this.PopulateMatrix(points);
+		_keepMatrix = keepMatrix;
+		if (keepMatrix)
+		{
+			this.Matrix = new T[this.MaxY + 1, this.MaxX + 1];
+			this.PopulateMatrix(points);
+		}
 	}
 
 	public void PopulateMatrix(List<Point<T?>> points)
@@ -27,11 +32,23 @@ public class Grid<T>
 		}
 	}
 
-	public T? GetValueAt(int x, int y) => this.Matrix[y, x];
+	//public T? GetValueAt(int x, int y) => this.Matrix[y, x];
+	public T? GetValueAt(int x, int y)
+	{
+		var point = this.Points.FirstOrDefault(p => p.X == x && p.Y == y);
+		if (point == null)
+		{
+			return default(T);
+		}
+		return point.Value;
+	}
 
 	public void SetValueAt(int x, int y, T v)
 	{
-		this.Matrix[y, x] = v;
+		if (this._keepMatrix)
+		{
+			this.Matrix[y, x] = v;
+		}
 		var point = this.Points.FirstOrDefault(p => p.X == x && p.Y == y);
 		if (point == null)
 		{
