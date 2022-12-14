@@ -60,7 +60,7 @@ namespace _2022.Day14
 		{
 			//SolvePartOne();
 			SolvePartTwo();
-			DrawPrettyGrid();
+			//DrawPrettyGrid();
 		}
 
 		public void DrawPrettyGrid()
