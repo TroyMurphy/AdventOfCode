@@ -20,6 +20,8 @@ namespace _2022.Day15
 		public HashSet<(int x, int y)> sensors;
 		public HashSet<(int x, int y)> beacons;
 
+		public HashSet<(int x, int y)> pointsToCheck = new();
+
 		public Day15()
 		{
 			this.sensors = new();
@@ -56,6 +58,24 @@ namespace _2022.Day15
 				var manhattan = GetManhattan(sensor, beacon);
 				this.closest[sensor] = ((bx, by), manhattan);
 			}
+			foreach (var sensor in sensors)
+			{
+				QueuePerimeter(sensor, closest[sensor].distance);
+			}
+		}
+
+		private void QueuePerimeter((int x, int y) sensor, int manhattan)
+		{
+			var perimeterDistance = manhattan + 1;
+			for (int xOffset = 0; xOffset <= perimeterDistance; xOffset++)
+			{
+				var yOffset = perimeterDistance - xOffset;
+
+				pointsToCheck.Add((sensor.x + xOffset, sensor.y + yOffset));
+				pointsToCheck.Add((sensor.x + xOffset, sensor.y - yOffset));
+				pointsToCheck.Add((sensor.x - xOffset, sensor.y + yOffset));
+				pointsToCheck.Add((sensor.x - xOffset, sensor.y - yOffset));
+			}
 		}
 
 		private int GetManhattan((int, int) a, (int, int) b)
@@ -74,41 +94,30 @@ namespace _2022.Day15
 		{
 			int deadX = 0;
 			int deadY = 0;
-
-			var found = false;
-			for (int x = 0; x <= upperBound; x++)
+			foreach (var (x, y) in pointsToCheck.Where(p => p.x > 0 && p.x < upperBound && p.y > 0 && p.y < upperBound))
 			{
-				for (int y = 0; y <= upperBound; y++)
+				var point = (x, y);
+				var hasSignal = false;
+				foreach (var sensor in this.sensors)
 				{
-					var point = (x, y);
-					foreach (var sensor in this.sensors)
+					var signalDelta = GetManhattan(point, sensor);
+					var manhattan = closest[sensor].distance;
+					if (signalDelta <= manhattan)
 					{
-						if (sensors.Contains(point) || beacons.Contains(point))
-						{
-							goto NextPoint;
-						}
-						var signalDelta = GetManhattan(point, sensor);
-						var manhattan = closest[sensor].distance;
-						if (signalDelta <= manhattan)
-						{
-							y += manhattan - signalDelta;
-							goto NextPoint;
-						}
+						hasSignal = true;
 					}
-					found = true;
-					deadX = x;
-					deadY = y;
-					break;
-				NextPoint:
+				}
+				if (hasSignal)
+				{
 					continue;
 				}
-				if (found)
-				{
-					break;
-				}
+				deadX = x;
+				deadY = y;
+				break;
 			}
 			Console.WriteLine($"Dead spot is at {deadX}, {deadY}");
-			Console.WriteLine($"Answer is: {(double)(deadX * 4000000 + deadY)}");
+			long freq = (long)deadX * 4000000 + deadY;
+			Console.WriteLine($"Answer is: {freq}");
 		}
 	}
 }
