@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using _2022.Day14;
+using _2022.Day15;
 
 class Program
 {
@@ -9,13 +9,14 @@ class Program
 		var watch = new Stopwatch();
 
 		watch.Start();
-		var problem = new Day14();
+		var problem = new Day15();
 		problem.Solve();
 		watch.Stop();
 
 		Console.WriteLine($"Ran in {watch.ElapsedMilliseconds}ms");
 	}
 }
+
 
 
 
