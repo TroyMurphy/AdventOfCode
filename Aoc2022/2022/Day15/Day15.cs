@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Xml.Schema;
 
@@ -15,13 +17,13 @@ namespace _2022.Day15
 		//public HashSet<(int x, int y)> beacons;
 		public Dictionary<(int x, int y), ((int x, int y) beacon, int distance)> closest;
 
-		public HashSet<(int x, int y)> noBeacons;
+		public HashSet<(int x, int y)> sensors;
+		public HashSet<(int x, int y)> beacons;
 
 		public Day15()
 		{
-			//this.sensors = new();
-			//this.beacons = new();
-			this.noBeacons = new();
+			this.sensors = new();
+			this.beacons = new();
 			this.closest = new();
 			if (test)
 			{
@@ -47,46 +49,66 @@ namespace _2022.Day15
 				var by = int.Parse(m.Groups[4].ToString());
 
 				var sensor = (sx, sy);
+				var beacon = (bx, by);
 
-				//this.sensors.Add(sensor);
-				//this.beacons.Add((bx, by));
-				var manhattan = Math.Max(sx, bx) - Math.Min(sx, bx) + Math.Max(sy, by) - Math.Min(sy, by);
+				this.sensors.Add(sensor);
+				this.beacons.Add(beacon);
+				var manhattan = GetManhattan(sensor, beacon);
 				this.closest[sensor] = ((bx, by), manhattan);
 			}
 		}
 
-		public void Solve()
+		private int GetManhattan((int, int) a, (int, int) b)
 		{
-			SolvePartOne();
+			var (ax, ay) = a;
+			var (bx, by) = b;
+			return Math.Max(ax, bx) - Math.Min(ax, bx) + Math.Max(ay, by) - Math.Min(ay, by);
 		}
 
-		private void SolvePartOne()
+		public void Solve()
 		{
-			foreach (var sensor in closest.Keys)
-			{
-				var (sx, sy) = sensor;
-				var (beacon, manhattan) = closest[sensor];
-				var (bx, by) = beacon;
-				if (!(sy - manhattan < targetLine && sy + manhattan > targetLine))
-				{
-					continue;
-				}
-
-				var yOffset = targetLine - sy;
-				for (int xOffset = manhattan - Math.Abs(yOffset); xOffset >= 0; xOffset--)
-				{
-					noBeacons.Add((sx + xOffset, targetLine));
-					noBeacons.Add((sx - xOffset, targetLine));
-				}
-			}
-			noBeacons.ExceptWith(closest.Values.Select(x => x.beacon));
-
-			var eliminated = noBeacons.Where(p => p.y == targetLine);
-			Console.WriteLine($"In the row where y={targetLine}, there are {eliminated.Count()} positions");
+			SolvePartTwo();
 		}
 
 		private void SolvePartTwo()
 		{
+			int deadX = 0;
+			int deadY = 0;
+
+			var found = false;
+			for (int x = 0; x <= upperBound; x++)
+			{
+				for (int y = 0; y <= upperBound; y++)
+				{
+					var point = (x, y);
+					foreach (var sensor in this.sensors)
+					{
+						if (sensors.Contains(point) || beacons.Contains(point))
+						{
+							goto NextPoint;
+						}
+						var signalDelta = GetManhattan(point, sensor);
+						var manhattan = closest[sensor].distance;
+						if (signalDelta <= manhattan)
+						{
+							y += manhattan - signalDelta;
+							goto NextPoint;
+						}
+					}
+					found = true;
+					deadX = x;
+					deadY = y;
+					break;
+				NextPoint:
+					continue;
+				}
+				if (found)
+				{
+					break;
+				}
+			}
+			Console.WriteLine($"Dead spot is at {deadX}, {deadY}");
+			Console.WriteLine($"Answer is: {(double)(deadX * 4000000 + deadY)}");
 		}
 	}
 }
