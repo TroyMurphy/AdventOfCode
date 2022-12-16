@@ -20,8 +20,6 @@ namespace _2022.Day15
 		public HashSet<(int x, int y)> sensors;
 		public HashSet<(int x, int y)> beacons;
 
-		public HashSet<(int x, int y)> pointsToCheck = new();
-
 		public Day15()
 		{
 			this.sensors = new();
@@ -58,24 +56,22 @@ namespace _2022.Day15
 				var manhattan = GetManhattan(sensor, beacon);
 				this.closest[sensor] = ((bx, by), manhattan);
 			}
-			foreach (var sensor in sensors)
-			{
-				QueuePerimeter(sensor, closest[sensor].distance);
-			}
 		}
 
-		private void QueuePerimeter((int x, int y) sensor, int manhattan)
+		private HashSet<(int x, int y)> GetPerimeter((int x, int y) sensor, int manhattan)
 		{
+			HashSet<(int x, int y)> perimeter = new();
 			var perimeterDistance = manhattan + 1;
 			for (int xOffset = 0; xOffset <= perimeterDistance; xOffset++)
 			{
 				var yOffset = perimeterDistance - xOffset;
 
-				pointsToCheck.Add((sensor.x + xOffset, sensor.y + yOffset));
-				pointsToCheck.Add((sensor.x + xOffset, sensor.y - yOffset));
-				pointsToCheck.Add((sensor.x - xOffset, sensor.y + yOffset));
-				pointsToCheck.Add((sensor.x - xOffset, sensor.y - yOffset));
+				perimeter.Add((sensor.x + xOffset, sensor.y + yOffset));
+				perimeter.Add((sensor.x + xOffset, sensor.y - yOffset));
+				perimeter.Add((sensor.x - xOffset, sensor.y + yOffset));
+				perimeter.Add((sensor.x - xOffset, sensor.y - yOffset));
 			}
+			return perimeter;
 		}
 
 		private int GetManhattan((int, int) a, (int, int) b)
@@ -90,31 +86,41 @@ namespace _2022.Day15
 			SolvePartTwo();
 		}
 
-		private void SolvePartTwo()
+		private bool IsOutsideAll((int x, int y) point)
 		{
-			int deadX = 0;
-			int deadY = 0;
-			foreach (var (x, y) in pointsToCheck.Where(p => p.x > 0 && p.x < upperBound && p.y > 0 && p.y < upperBound))
+			var hasSignal = false;
+			foreach (var sensor in this.sensors)
 			{
-				var point = (x, y);
-				var hasSignal = false;
-				foreach (var sensor in this.sensors)
+				var signalDelta = GetManhattan(point, sensor);
+				var manhattan = closest[sensor].distance;
+				if (signalDelta <= manhattan)
 				{
-					var signalDelta = GetManhattan(point, sensor);
-					var manhattan = closest[sensor].distance;
-					if (signalDelta <= manhattan)
+					hasSignal = true;
+				}
+			}
+			return !hasSignal;
+		}
+
+		private (int, int) FindEmpty()
+		{
+			foreach (var sensor in sensors)
+			{
+				var pointsToCheck = GetPerimeter(sensor, closest[sensor].distance);
+				foreach (var (x, y) in pointsToCheck.Where(p => p.x > 0 && p.x < upperBound && p.y > 0 && p.y < upperBound))
+				{
+					if (IsOutsideAll((x, y)))
 					{
-						hasSignal = true;
+						return (x, y);
 					}
 				}
-				if (hasSignal)
-				{
-					continue;
-				}
-				deadX = x;
-				deadY = y;
-				break;
+				Console.WriteLine($"Not sensor ({sensor.x}, {sensor.y})");
 			}
+			throw new Exception();
+		}
+
+		private void SolvePartTwo()
+		{
+			var (deadX, deadY) = FindEmpty();
 			Console.WriteLine($"Dead spot is at {deadX}, {deadY}");
 			long freq = (long)deadX * 4000000 + deadY;
 			Console.WriteLine($"Answer is: {freq}");
