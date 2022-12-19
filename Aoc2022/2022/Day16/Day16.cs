@@ -80,7 +80,7 @@ namespace _2022.Day16
 
 		public void Solve()
 		{
-			SolvePartOne();
+			SolvePartTwo();
 		}
 
 
@@ -88,13 +88,29 @@ namespace _2022.Day16
 		{
 			DefaultDictionary<long, int> bestFlows = new();
 			var home = importantCaves.First(x => x.Key == "AA");
-			Visit(home, 30, 1, 0, bestFlows);
+			Visit(home, 30, 0, 0, bestFlows);
 			var bestFlow = bestFlows.Values.Max();
 			Console.WriteLine($"The best flow is {bestFlow}");
 		}
 
 		private void SolvePartTwo()
 		{
+			DefaultDictionary<long, int> bestFlows = new();
+			var home = importantCaves.First(x => x.Key == "AA");
+			Visit(home, 26, 0, 0, bestFlows);
+
+			int best = 0;
+
+			foreach (var kvp1 in bestFlows)
+			{
+				foreach (var kvp2 in bestFlows)
+				{
+					if ((kvp1.Key & kvp2.Key) != 0) continue; //Only care if valves for disjoint set
+					best = int.Max(best, kvp1.Value + kvp2.Value);
+				}
+			}
+
+			Console.WriteLine($"Hey it is {best}");
 		}
 
 		// bestFlows maps a valve state (which will intrinsically ordered from bitwise ands so we don't add to a lookup more than once
