@@ -49,7 +49,7 @@ where T : notnull
 		throw new NotImplementedException();
 	}
 
-	public int[,] GetFloydWarshall(bool directed = false, bool weighted = false)
+	public int[,] GetFloydWarshall()
 	{
 		int V = this.Nodes.Keys.Count();
 		var dist = new int[V, V];
@@ -69,7 +69,7 @@ where T : notnull
 
 		foreach (var edge in this.Edges.Value.AsEnumerable())
 		{
-			dist[edge.from.Id, edge.to.Id] = weighted ? edge.to.Weight!.Value : 1;
+			dist[edge.from.Id, edge.to.Id] = 1;
 		}
 
 		for (int k = 0; k < V; k++)
@@ -82,10 +82,7 @@ where T : notnull
 					if (dist[i, j] > dist[i, k] + dist[k, j])
 					{
 						dist[i, j] = dist[i, k] + dist[k, j];
-						if (!directed)
-						{
-							dist[j, i] = dist[i, j];
-						}
+						dist[j, i] = dist[i, j];
 					}
 				}
 			}

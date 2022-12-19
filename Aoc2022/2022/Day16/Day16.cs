@@ -6,18 +6,19 @@ namespace _2022.Day16
 		// public Dictionary<string, int> flowRates = new();
 		// public Dictionary<string, List<string>> tunnels = new();
 		public Graph<string> graph;
+		readonly int[,] allDistances;
 
 		public List<Node<string>> importantCaves; // the start cave, and any cave with nonzero value 
 		public int[,] importantCaveDistances;
-		public long[] bitwiseValveMasks;
+		public Dictionary<string, long> bitwiseValveMasks;
 
 		public string start;
 
 		public Day16()
 		{
 
-			// this._lines = Utilities.ReadLines(@"./Day16/inputs/input.txt");
-			this._lines = Utilities.ReadLines(@"./Day16/inputs/demo1.txt");
+			this._lines = Utilities.ReadLines(@"./Day16/inputs/input.txt");
+			// this._lines = Utilities.ReadLines(@"./Day16/inputs/demo1.txt");
 
 			var infoDictionary = new Dictionary<string, (IList<string>, int)>();
 
@@ -33,47 +34,48 @@ namespace _2022.Day16
 				infoDictionary[cur] = (tunnels, rate);
 			};
 			this.graph = new Graph<string>(infoDictionary);
-			var allDists = graph.GetFloydWarshall();
+			this.allDistances = graph.GetFloydWarshall();
 
 			// keep only the caves that we might actually visit into the minimized distance matrix
 			// keep as lookup value from dictionary
-			this.importantCaves = graph.Nodes.Values.Where(x => x.Id == 0 || x.Weight!.Value > 0).OrderBy(x => x.Id).ToList();
-			var importantCaveIndexes = graph.Nodes.Values.Where(x => x.Id == 0 || x.Weight!.Value > 0).Select(x => x.Id).ToList();
+			var importantCaveIds = graph.Nodes.Values.Where(x => x.Key == "AA" || x.Weight!.Value > 0).Select(x => x.Id).ToList();
 
-			var importantCavesCount = importantCaves.Count();
+			var importantCavesCount = importantCaveIds.Count();
+
 			var allCavesSize = graph.Nodes.Keys.Count();
 			this.importantCaveDistances = new int[importantCavesCount, importantCavesCount];
 
-			var importantCavesRow = 0;
-			var importantCavesCol = 0;
-			for (int i = 0; i < allCavesSize; i++)
+			var deleteIndexes = this.graph.Nodes.Values.Where(x => !importantCaveIds.Any(keep => keep == x.Id));
+
+			for (int i = 0, importantI = 0; i < allCavesSize; i++)
 			{
-				if (importantCaveIndexes.Contains(i))
+				if (!importantCaveIds.Contains(i))
 				{
-					for (int j = 0; j < allCavesSize; j++)
-					{
-						if (importantCaveIndexes.Contains(j))
-						{
-							importantCaveDistances[importantCavesRow, importantCavesCol++] = allDists[i, j];
-						}
-					}
-					importantCavesRow++;
-					importantCavesCol = 0;
+					continue;
 				}
+				for (int j = 0, importantJ = 0; j < allCavesSize; j++)
+				{
+					if (!importantCaveIds.Contains(j))
+					{
+						continue;
+					}
+					importantCaveDistances[importantI, importantJ++] = allDistances[i, j];
+				}
+				importantI++;
 			}
 
+			importantCaves = new();
+			bitwiseValveMasks = new();
 			int newNodeCount = 0;
-			foreach (var n in importantCaves)
+			foreach (var id in importantCaveIds)
 			{
-				n.Id = newNodeCount++;
+				var cave = graph.Nodes.Values.First(x => x.Id == id);
+				cave.Id = newNodeCount++;
+				importantCaves.Add(cave);
+				bitwiseValveMasks[cave.Key] = 1 << newNodeCount;
 			}
 
 			// We only track valves we might turn on. If valve state is all ones, we can terminate
-			bitwiseValveMasks = new long[importantCavesCount];
-			for (int i = 0; i < importantCavesCount; i++)
-			{
-				bitwiseValveMasks[i] = 1 << i;
-			}
 		}
 
 		public void Solve()
@@ -85,7 +87,8 @@ namespace _2022.Day16
 		private void SolvePartOne()
 		{
 			DefaultDictionary<long, int> bestFlows = new();
-			Visit(importantCaves.First(), 30, 1, 0, bestFlows);
+			var home = importantCaves.First(x => x.Key == "AA");
+			Visit(home, 30, 1, 0, bestFlows);
 			var bestFlow = bestFlows.Values.Max();
 			Console.WriteLine($"The best flow is {bestFlow}");
 		}
@@ -101,22 +104,21 @@ namespace _2022.Day16
 			// time is implied by a higher flow for the same set of visited valves.
 			bestFlows[visitedMask] = Math.Max(bestFlows[visitedMask], accFlow);
 			// now we can go to any neighbor at any time 
-			for (int i = 0; i < importantCaves.Count(); i++)
+			foreach (var toVisit in importantCaves)
 			{
-				var toVisit = importantCaves[i];
 				if (toVisit.Id == node.Id)
 				{
 					continue;
 				}
 				var timeIfTurnedOn = timeRemaining - importantCaveDistances[node.Id, toVisit.Id] - 1;
-				var isCaveVisited = (visitedMask & bitwiseValveMasks[i]) != 0;
+				var isCaveVisited = (visitedMask & bitwiseValveMasks[toVisit.Key]) != 0;
 				// check if the neighbor is a valid option with time remaining
 				if (timeIfTurnedOn <= 0 || isCaveVisited)
 				{
 					continue;
 				}
 				// otherwise we can just zap to the node using our distances and see if better
-				Visit(toVisit, timeIfTurnedOn, (visitedMask | bitwiseValveMasks[i]), accFlow + (timeIfTurnedOn * toVisit.Weight!.Value), bestFlows);
+				Visit(toVisit, timeIfTurnedOn, (visitedMask | bitwiseValveMasks[node.Key]), accFlow + (timeIfTurnedOn * toVisit.Weight!.Value), bestFlows);
 			}
 		}
 	}
