@@ -28,7 +28,7 @@ public class Grid<T>
 	{
 		foreach (var point in points)
 		{
-			this.Matrix[point.Y, point.X] = point.Value;
+			this.Matrix![point.Y, point.X] = point.Value;
 		}
 	}
 
@@ -37,7 +37,7 @@ public class Grid<T>
 	{
 		if (_keepMatrix)
 		{
-			return this.Matrix[y, x];
+			return this.Matrix![y, x];
 		}
 		var point = this.Points.FirstOrDefault(p => p.X == x && p.Y == y);
 		if (point == null)
@@ -51,7 +51,7 @@ public class Grid<T>
 	{
 		if (this._keepMatrix)
 		{
-			this.Matrix[y, x] = v;
+			this.Matrix![y, x] = v;
 		}
 		var point = this.Points.FirstOrDefault(p => p.X == x && p.Y == y);
 		if (point == null)
@@ -68,7 +68,7 @@ public class Grid<T>
 		{
 			for (int j = 0; j < this.GetWidth(); j++)
 			{
-				Console.Write(this.Matrix[i, j] is null ? "." : $"{this.Matrix[i, j]}");
+				Console.Write(this.Matrix![i, j] is null ? "." : $"{this.Matrix[i, j]}");
 				Console.Write(" ");
 			}
 			Console.WriteLine();
@@ -137,7 +137,7 @@ public class Grid<T>
 					Console.BackgroundColor = ConsoleColor.DarkRed;
 					Console.ForegroundColor = ConsoleColor.White;
 				}
-				Console.Write($"{input[i, j].ToString().PadLeft(3, ' ')}");
+				Console.Write($"{input[i, j]?.ToString() ?? ".".PadLeft(3, ' ')}");
 				Console.Write(" ");
 				Console.BackgroundColor = ConsoleColor.Black;
 				Console.ForegroundColor = ConsoleColor.White;
@@ -146,7 +146,7 @@ public class Grid<T>
 		}
 	}
 
-	public int GetWidth() => this.Matrix.GetLength(1);
+	public int GetWidth() => this.Matrix!.GetLength(1);
 
-	public int GetHeight() => this.Matrix.GetLength(0);
+	public int GetHeight() => this.Matrix!.GetLength(0);
 }
