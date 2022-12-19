@@ -9,7 +9,7 @@ namespace _2022.Day16
 
 		public List<Node<string>> importantCaves; // the start cave, and any cave with nonzero value 
 		public int[,] importantCaveDistances;
-		public int[] bitwiseValveMasks;
+		public long[] bitwiseValveMasks;
 
 		public string start;
 
@@ -69,7 +69,7 @@ namespace _2022.Day16
 			}
 
 			// We only track valves we might turn on. If valve state is all ones, we can terminate
-			bitwiseValveMasks = new int[importantCavesCount];
+			bitwiseValveMasks = new long[importantCavesCount];
 			for (int i = 0; i < importantCavesCount; i++)
 			{
 				bitwiseValveMasks[i] = 1 << i;
@@ -84,8 +84,8 @@ namespace _2022.Day16
 
 		private void SolvePartOne()
 		{
-			DefaultDictionary<int, int> bestFlows = new();
-			Visit(importantCaves.First(), 30, 0, 0, bestFlows);
+			DefaultDictionary<long, int> bestFlows = new();
+			Visit(importantCaves.First(), 30, 1, 0, bestFlows);
 			var bestFlow = bestFlows.Values.Max();
 			Console.WriteLine($"The best flow is {bestFlow}");
 		}
@@ -95,7 +95,7 @@ namespace _2022.Day16
 		}
 
 		// bestFlows maps a valve state (which will intrinsically ordered from bitwise ands so we don't add to a lookup more than once
-		private void Visit(Node<string> node, int timeRemaining, int visitedMask, int accFlow, DefaultDictionary<int, int> bestFlows)
+		private void Visit(Node<string> node, int timeRemaining, long visitedMask, int accFlow, DefaultDictionary<long, int> bestFlows)
 		{
 			// if we can get to the same set of valves with a better flow, that's the new best state to track.
 			// time is implied by a higher flow for the same set of visited valves.
@@ -109,9 +109,9 @@ namespace _2022.Day16
 					continue;
 				}
 				var timeIfTurnedOn = timeRemaining - importantCaveDistances[node.Id, toVisit.Id] - 1;
-				var isNeighborVisited = (visitedMask & bitwiseValveMasks[i]) > 0;
+				var isCaveVisited = (visitedMask & bitwiseValveMasks[i]) != 0;
 				// check if the neighbor is a valid option with time remaining
-				if (timeIfTurnedOn <= 0 || isNeighborVisited)
+				if (timeIfTurnedOn <= 0 || isCaveVisited)
 				{
 					continue;
 				}
