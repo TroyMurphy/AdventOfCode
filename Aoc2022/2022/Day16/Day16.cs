@@ -104,7 +104,11 @@ namespace _2022.Day16
 			for (int i = 0; i < importantCaves.Count(); i++)
 			{
 				var toVisit = importantCaves[i];
-				var timeIfTurnedOn = timeRemaining - importantCaveDistances[node.Id, toVisit.Id];
+				if (toVisit.Id == node.Id)
+				{
+					continue;
+				}
+				var timeIfTurnedOn = timeRemaining - importantCaveDistances[node.Id, toVisit.Id] - 1;
 				var isNeighborVisited = (visitedMask & bitwiseValveMasks[i]) > 0;
 				// check if the neighbor is a valid option with time remaining
 				if (timeIfTurnedOn <= 0 || isNeighborVisited)
