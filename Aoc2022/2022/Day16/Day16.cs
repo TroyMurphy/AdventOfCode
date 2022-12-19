@@ -37,34 +37,13 @@ namespace _2022.Day16
 
 			var importantCavesCount = importantCaveIds.Count();
 
-			var allCavesSize = graph.Nodes.Keys.Count();
-			this.importantCaveDistances = new int[importantCavesCount, importantCavesCount];
-
-			for (int i = 0, importantI = 0; i < allCavesSize; i++)
-			{
-				if (!importantCaveIds.Contains(i))
-				{
-					continue;
-				}
-				for (int j = 0, importantJ = 0; j < allCavesSize; j++)
-				{
-					if (!importantCaveIds.Contains(j))
-					{
-						continue;
-					}
-					importantCaveDistances[importantI, importantJ++] = allDistances[i, j];
-				}
-				importantI++;
-			}
-
-			importantCaves = new();
-			bitwiseValveMasks = new();
+			this.importantCaves = new();
+			this.bitwiseValveMasks = new();
 			int newNodeCount = 0;
 			foreach (var id in importantCaveIds)
 			{
 				var cave = graph.Nodes.Values.First(x => x.Id == id);
-				cave.Id = newNodeCount;
-				importantCaves.Add(cave);
+				this.importantCaves.Add(cave);
 				bitwiseValveMasks[cave.Key] = 1 << newNodeCount;
 				newNodeCount++;
 			}
@@ -92,9 +71,9 @@ namespace _2022.Day16
 
 			int best = 0;
 
-			foreach (var kvp1 in bestFlows.Where(x => x.Value > 0))
+			foreach (var kvp1 in bestFlows)
 			{
-				foreach (var kvp2 in bestFlows.Where(x => x.Value > 0))
+				foreach (var kvp2 in bestFlows)
 				{
 					if ((kvp1.Key & kvp2.Key) != 0)
 					{
@@ -117,7 +96,7 @@ namespace _2022.Day16
 			// now we can go to any neighbor at any time
 			foreach (var toVisit in importantCaves.Where(x => x.Id != node.Id))
 			{
-				var timeIfTurnedOn = timeRemaining - importantCaveDistances[node.Id, toVisit.Id] - 1;
+				var timeIfTurnedOn = timeRemaining - this.allDistances[node.Id, toVisit.Id] - 1;
 				var isCaveVisited = (visitedMask & bitwiseValveMasks[toVisit.Key]) != 0;
 				// check if the neighbor is a valid option with time remaining
 				if (timeIfTurnedOn <= 0 || isCaveVisited)
