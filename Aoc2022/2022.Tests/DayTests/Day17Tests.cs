@@ -45,5 +45,22 @@ namespace _2022.Tests.Day17
 			rock = this.day.NextRock();
 			Assert.That(rock.Id, Is.EqualTo(1));
 		}
+
+		[Test]
+		public void TestTopologyHash()
+		{
+			this.day.columns = new HashSet<int>[]
+				{
+					new HashSet<int> { },
+					new HashSet<int> {1, 2 },
+					new HashSet<int> { 0},
+					new HashSet<int> {1,3 },
+					new HashSet<int> {2 },
+					new HashSet<int> { },
+					new HashSet<int> { },
+				};
+			var hash = this.day.CreateTopologyHash();
+			Assert.That(hash, Is.EqualTo("_.1-2.0.1-3.2._._"));
+		}
 	}
 }
