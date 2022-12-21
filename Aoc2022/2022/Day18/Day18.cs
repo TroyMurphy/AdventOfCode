@@ -6,7 +6,7 @@ namespace _2022.Day18
 	{
 		public readonly IEnumerable<string> _lines;
 		public HashSet<(int x, int y, int z)> cubes = new();
-		public HashSet<(int x, int y, int z)> insideCubes = new();
+		public HashSet<(int x, int y, int z)> water = new();
 		public long facesCount = 0;
 
 		public int minX;
@@ -46,7 +46,7 @@ namespace _2022.Day18
 		{
 			foreach (var cube in cubes)
 			{
-				var faces = GenSurrounding(cube);
+				var faces = GenSurrounding(cube).ToHashSet();
 				if (faces is null)
 				{
 					throw new Exception();
@@ -59,117 +59,65 @@ namespace _2022.Day18
 
 		private void SolvePartTwo()
 		{
-			minX = cubes.Min(p => p.x);
-			minY = cubes.Min(p => p.y);
-			minZ = cubes.Min(p => p.z);
-			maxX = cubes.Max(p => p.x);
-			maxY = cubes.Max(p => p.y);
-			maxZ = cubes.Max(p => p.z);
+			minX = cubes.Min(p => p.x) - 1;
+			minY = cubes.Min(p => p.y) - 1;
+			minZ = cubes.Min(p => p.z) - 1;
+			maxX = cubes.Max(p => p.x) + 1;
+			maxY = cubes.Max(p => p.y) + 1;
+			maxZ = cubes.Max(p => p.z) + 1;
+			FillWater((minX, minY, minZ));
 			foreach (var cube in cubes)
 			{
-				var faces = GenSurrounding(cube);
+				var faces = GenSurrounding(cube).ToHashSet();
 				if (faces is null)
 				{
 					throw new Exception();
 				}
 				faces.ExceptWith(cubes);
-				facesCount += faces.Where(x => !IsInside(x)).Count();
+				facesCount += faces.Where(x => IsOuterSurface(x)).Count();
 			}
 			Console.WriteLine($"There are {facesCount} faces outside");
 		}
 
-		private bool IsInside((int x, int y, int z) point)
+		private void FillWater((int x, int y, int z) point)
 		{
-			if (insideCubes.Contains(point))
+			// Only add cubes if they are in bounds, and not already water
+			Queue<(int x, int y, int z)> toFill = new();
+			toFill.Enqueue(point);
+
+			while (toFill.Count > 0)
 			{
-				return true;
+				var checkCube = toFill.Dequeue();
+				if (cubes.Contains(checkCube))
+				{
+					continue;
+				}
+				water.Add(checkCube);
+				var surrounding = GenSurrounding(checkCube);
+
+				foreach ((int x, int y, int z) neighbor in surrounding)
+				{
+					if (toFill.Contains(neighbor) || water.Contains(neighbor) || (neighbor.x < minX || neighbor.x > maxX ||
+						neighbor.y < minY || neighbor.y > maxY ||
+						neighbor.z < minZ || neighbor.z > maxZ))
+					{
+						continue;
+					}
+					toFill.Enqueue(neighbor);
+				}
 			}
-			var result = DoesHitSurrounding(point, Direction.X) && DoesHitSurrounding(point, Direction.Y) && DoesHitSurrounding(point, Direction.Z);
-			if (result)
-			{
-				insideCubes.Add(point);
-			}
-			return result;
 		}
+
+		private bool IsOuterSurface((int x, int y, int z) point) => water.Contains(point);
 
 		public enum Direction
 		{
 			X, Y, Z
 		}
 
-		private bool DoesHitSurrounding((int x, int y, int z) point, Direction d)
+		public List<(int, int, int)> GenSurrounding((int x, int y, int z) point)
 		{
-			var hitsIncreasing = false;
-			var hitsDecreasing = false;
-			int checkVal;
-			int max;
-			int min;
-			switch (d)
-			{
-				case (Direction.X):
-					checkVal = point.x;
-					max = maxX;
-					min = minX;
-					break;
-
-				case (Direction.Y):
-					checkVal = point.y;
-					max = maxY;
-					min = minY;
-					break;
-
-				case (Direction.Z):
-					checkVal = point.z;
-					max = maxZ;
-					min = minZ;
-					break;
-
-				default:
-					throw new Exception();
-			};
-
-			var reset = checkVal;
-			while (checkVal <= max)
-			{
-				var checkPoint = d switch
-				{
-					Direction.X => (++checkVal, point.y, point.z),
-					Direction.Y => (point.x, ++checkVal, point.z),
-					Direction.Z => (point.x, point.y, ++checkVal),
-					_ => throw new Exception()
-				};
-				if (cubes.Contains(checkPoint))
-				{
-					hitsIncreasing = true;
-					break;
-				}
-			}
-			if (!hitsIncreasing)
-			{
-				return false;
-			}
-			checkVal = reset;
-			while (checkVal >= min)
-			{
-				var checkPoint = d switch
-				{
-					Direction.X => (--checkVal, point.y, point.z),
-					Direction.Y => (point.x, --checkVal, point.z),
-					Direction.Z => (point.x, point.y, --checkVal),
-					_ => throw new Exception()
-				};
-				if (cubes.Contains(checkPoint))
-				{
-					hitsDecreasing = true;
-					break;
-				}
-			}
-			return hitsDecreasing;
-		}
-
-		public HashSet<(int, int, int)> GenSurrounding((int x, int y, int z) point)
-		{
-			var result = new HashSet<(int, int, int)>();
+			var result = new List<(int, int, int)>();
 			for (int r = 0; r < 3; r++)
 			{
 				switch (r)
