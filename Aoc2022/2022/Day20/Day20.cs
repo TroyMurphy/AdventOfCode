@@ -66,8 +66,8 @@ namespace _2022.Day20
 				var item = long.Parse(line) * decryptionKey;
 				input.AddLast(new GroveNum() { Value = (int)(item % (listLength - 1)), TrueValue = item, MoveOrder = moveOrder++ });
 			}
-			Console.WriteLine("Initial:");
-			WriteList(input);
+			//Console.WriteLine("Initial:");
+			//WriteList(input);
 			//Console.WriteLine(string.Join(",", input.Select(x => x.Value).ToList()));
 			for (int i = 0; i < 10; i++)
 			{
