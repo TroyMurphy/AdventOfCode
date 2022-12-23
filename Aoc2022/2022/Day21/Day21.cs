@@ -31,7 +31,8 @@ namespace _2022.Day21
 
 		public void Solve()
 		{
-			SolvePartOne();
+			//SolvePartOne();
+			SolvePartTwo();
 		}
 
 		private void SolvePartOne()
@@ -43,6 +44,10 @@ namespace _2022.Day21
 
 		private void SolvePartTwo()
 		{
+			var root = this.Monkeys["root"];
+			//root.PrintEqual();
+			root.ForceMonkey(this.Monkeys[root.Monkey1Key], this.Monkeys[root.Monkey2Key].GetValue().Value);
+			Console.WriteLine($"Human should yell {this.Monkeys["humn"].Number}");
 		}
 	}
 
@@ -56,24 +61,78 @@ namespace _2022.Day21
 		public string Monkey2Key { get; set; }
 		public string Operator { get; set; }
 
-		public long GetValue()
+		public long? GetValue()
 		{
+			if (this.Id == "humn")
+			{
+				return null;
+			}
+
 			if (this.Number.HasValue)
 			{
 				return this.Number.Value;
 			}
-			var m1 = MonkeyDict[this.Monkey1Key];
-			var m2 = MonkeyDict[this.Monkey2Key];
+			var m1 = MonkeyDict[this.Monkey1Key].GetValue();
+			var m2 = MonkeyDict[this.Monkey2Key].GetValue();
+
+			if (m1 is null || m2 is null)
+			{
+				return null;
+			}
 
 			this.Number = this.Operator switch
 			{
-				"+" => m1.GetValue() + m2.GetValue(),
-				"*" => m1.GetValue() * m2.GetValue(),
-				"-" => m1.GetValue() - m2.GetValue(),
-				"/" => m1.GetValue() / m2.GetValue(),
+				"+" => m1 + m2,
+				"*" => m1 * m2,
+				"-" => m1 - m2,
+				"/" => m1 / m2,
 				_ => throw new Exception()
 			};
 			return this.Number.Value;
+		}
+
+		public void PrintEqual()
+		{
+			var m1 = MonkeyDict[this.Monkey1Key].GetValue();
+			var m2 = MonkeyDict[this.Monkey2Key].GetValue();
+
+			Console.WriteLine($"Monkey 1 is {m1} and Monkey 2 is {m2}");
+		}
+
+		public void ForceMonkey(Monkey unknownMonkey, long forcedValue)
+		{
+			if (unknownMonkey.Id == "humn")
+			{
+				unknownMonkey.Number = forcedValue;
+				return;
+			}
+			var m1 = MonkeyDict[unknownMonkey.Monkey1Key];
+			var m2 = MonkeyDict[unknownMonkey.Monkey2Key];
+			long? m1Val = m1.GetValue();
+
+			if (m1Val is null)
+			{
+				long m2Val = m2.GetValue() ?? throw new Exception();
+				var value = unknownMonkey.Operator switch
+				{
+					"+" => forcedValue - m2Val,
+					"-" => forcedValue + m2Val,
+					"*" => forcedValue / m2Val,
+					"/" => forcedValue * m2Val
+				};
+				ForceMonkey(m1, value);
+			}
+			if (m2.GetValue() is null)
+			{
+				var value = unknownMonkey.Operator switch
+				{
+					"+" => forcedValue - m1Val,
+					"-" => m1Val - forcedValue,
+					"*" => forcedValue / m1Val,
+					"/" => m1Val / forcedValue
+				};
+				ForceMonkey(m2, value.Value);
+			}
 		}
 
 		public Monkey(string input, Dictionary<string, Monkey> monkeyDict)
