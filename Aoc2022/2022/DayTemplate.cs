@@ -10,12 +10,17 @@ namespace _2022.DayTemplate
 	{
 		public readonly IEnumerable<string> _lines;
 
-
-		public DayTemplate()
+		public DayTemplate(bool test = true)
 		{
-			this._lines = Utilities.ReadLines(@"./DayTemplate/inputs/input.txt");
+			this._lines = GetLines(test);
 		}
 
+		private IEnumerable<string> GetLines(bool test)
+		{
+			return test
+				? Utilities.ReadLines(@"./DayTemplate/inputs/demo1.txt")
+				: Utilities.ReadLines(@"./DayTemplate/inputs/input.txt");
+		}
 
 		public void Solve()
 		{
