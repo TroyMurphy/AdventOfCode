@@ -1,6 +1,6 @@
 namespace _2022
 {
-	internal class DefaultDictionary<TKey, TValue> : Dictionary<TKey, TValue>
+	public class DefaultDictionary<TKey, TValue> : Dictionary<TKey, TValue>
 	where TKey : notnull
 	where TValue : struct
 	{
