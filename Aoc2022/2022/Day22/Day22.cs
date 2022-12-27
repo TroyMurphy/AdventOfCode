@@ -11,20 +11,18 @@ namespace _2022.Day22
 	public class Day22
 	{
 		public readonly IEnumerable<string> _lines;
-		public Maze Maze { get; set; }
+		public Maze2 Maze { get; set; }
 		public char[] Instructions { get; set; }
 		public IEnumerator<int> _distanceGenerator;
 		public Player player { get; set; } = new();
+		public int FaceHeight { get; set; } = int.MaxValue;
+		public int FaceWidth { get; set; } = int.MaxValue;
 
 		public Day22(bool test = false)
 		{
 			this._lines = GetLines(test);
-			this.Maze = new();
+			this.Maze = new(this._lines.Take(this._lines.Count() - 2));
 			this._distanceGenerator = GetDistance().GetEnumerator();
-			foreach (var line in _lines.Take(_lines.Count() - 2))
-			{
-				this.Maze.AddRow(line);
-			}
 			this.Instructions = _lines.Last().ToCharArray();
 		}
 
@@ -37,7 +35,7 @@ namespace _2022.Day22
 
 		public void Solve()
 		{
-			SolvePartOne();
+			SolvePartTwo();
 		}
 
 		private void SolvePartOne()
@@ -62,6 +60,22 @@ namespace _2022.Day22
 
 		private void SolvePartTwo()
 		{
+			player.Position = GetPlayerStart();
+			player.Facing = Direction.E;
+
+			while (true)
+			{
+				int? distance = NextDistance();
+				if (!distance.HasValue)
+				{
+					break;
+				}
+				this.Maze.Navigate(player, distance.Value);
+			}
+			var result = 1000 * (player.Position.y + 1);
+			result += 4 * (player.Position.x + 1);
+			result += (int)player.Facing;
+			Console.WriteLine($"Result is {result}");
 		}
 
 		public int? NextDistance()
