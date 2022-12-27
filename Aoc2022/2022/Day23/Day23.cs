@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace _2022.Day23
 {
 	public class Day23
@@ -6,7 +8,7 @@ namespace _2022.Day23
 		public List<Elf> ElfSet = new();
 		public HashSet<(int x, int y)> ElfPositions;
 		public DefaultDictionary<(int x, int y), int> AllProposed;
-		public Queue<Direction> Directions = new();
+		public LinkedList<Direction> Directions = new();
 
 		public Day23(bool test = false)
 		{
@@ -28,10 +30,10 @@ namespace _2022.Day23
 
 			this.ElfSet.Select(x => x.Position).ToHashSet();
 
-			this.Directions.Enqueue(Direction.N);
-			this.Directions.Enqueue(Direction.S);
-			this.Directions.Enqueue(Direction.W);
-			this.Directions.Enqueue(Direction.E);
+			this.Directions.AddLast(Direction.N);
+			this.Directions.AddLast(Direction.S);
+			this.Directions.AddLast(Direction.W);
+			this.Directions.AddLast(Direction.E);
 		}
 
 		private IEnumerable<string> GetLines(bool test)
@@ -43,7 +45,8 @@ namespace _2022.Day23
 
 		public void Solve()
 		{
-			SolvePartOne();
+			//SolvePartOne();
+			SolvePartTwo();
 		}
 
 		private void SolvePartOne()
@@ -72,6 +75,17 @@ namespace _2022.Day23
 
 		private void SolvePartTwo()
 		{
+			var round = 0;
+			while (true)
+			{
+				var success = DoRound();
+				round++;
+				if (success == false)
+				{
+					break;
+				}
+			}
+			Console.WriteLine($"Stopped after round {round}");
 		}
 
 		public bool DoRound()
@@ -89,8 +103,8 @@ namespace _2022.Day23
 					elf.Proposed = elf.Position;
 				}
 			}
-			var willPropose = ElfSet.Where(x => x.Proposed is null);
-			if (willPropose.Count() == 0)
+			var willPropose = ElfSet.Where(x => x.Proposed is null).ToList();
+			if (willPropose.Count == 0)
 			{
 				return false;
 			}
@@ -105,13 +119,17 @@ namespace _2022.Day23
 					{
 						elf.SetProposed(direction);
 						this.AllProposed[elf.Proposed.Value] += 1;
-						continue;
+						break;
 					}
 				}
 			}
 
-			foreach (var elf in ElfSet.Where(x => x.Proposed is not null))
+			foreach (var elf in willPropose)
 			{
+				if (!elf.Proposed.HasValue)
+				{
+					continue;
+				}
 				if (AllProposed[elf.Proposed.Value] == 1)
 				{
 					elf.Position = elf.Proposed.Value;
@@ -129,7 +147,9 @@ namespace _2022.Day23
 
 		internal void CycleDirection()
 		{
-			this.Directions.Enqueue(this.Directions.Dequeue());
+			var pop = this.Directions.First;
+			this.Directions.RemoveFirst();
+			this.Directions.AddLast(pop);
 		}
 
 		public HashSet<(int x, int y)> AllNeighbors((int x, int y) point)
