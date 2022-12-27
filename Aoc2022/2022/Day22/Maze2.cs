@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.AccessControl;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,126 +18,123 @@ namespace _2022.Day22
 
 		public ((int x, int y) pos, Direction direction) GetNext((int x, int y) from, Direction facing)
 		{
-			#region north
-
-			// walk off 1
+			int x;
+			int y;
 			if (facing == Direction.N)
 			{
-				if (from.y == 0)
-				{
-					// walk off 1
-					if (from.x < 100)
-					{
-						return ((0, 150 + from.x - 50), Direction.E);
-					}
-					// walk off 2
-					else
-					{
-						return ((from.x - 100, 199), Direction.N);
-					}
-				}
-				// walk off 5
 				if (from.y == 100 && from.x < 50)
 				{
-					return ((50, from.x + 50), Direction.E);
+					// up from 5
+					x = 50;
+					y = (from.x % 50) + 50;
+					return ((x, y), Direction.E);
 				}
-
+				else if (from.y == 0 && from.x >= 50 && from.x < 100)
+				{
+					// up from 1
+					x = 0;
+					y = (from.x % 50) + 150;
+					return ((x, y), Direction.E);
+				}
+				else if (from.y == 0 && from.x >= 100)
+				{
+					// up from 2
+					x = (from.x % 50);
+					y = 199;
+					return ((x, y), Direction.N);
+				}
 				return ((from.x, from.y - 1), Direction.N);
 			}
-
-			#endregion north
-
-			#region East
-
-			if (facing == Direction.E)
+			else if (facing == Direction.E)
 			{
-				if ((from.x + 1) % 50 == 0)
+				if (from.x == 149 && from.y < 50)
 				{
-					if (from.y < 50)
-					{
-						// walk off 2
-						return ((99, 149 - from.y), Direction.W);
-					}
-					else if (from.y < 100)
-					{
-						// walk of 3
-						return ((from.y - 50 + 100, 49), Direction.N);
-					}
-					else if (from.y < 150)
-					{
-						// walk off 4
-						return ((149, 149 - from.y), Direction.W);
-					}
-					else
-					{
-						// walk off 6
-						return ((from.y - 150 + 50, 149), Direction.N);
-					}
+					// right from 2
+					x = 99;
+					y = 149 - (from.y % 50);
+					return ((x, y), Direction.W);
+				}
+				else if (from.x == 99 && from.y >= 50 && from.y < 100)
+				{
+					// right from 3
+					x = (from.y % 50) + 100;
+					y = 49;
+					return ((x, y), Direction.N);
+				}
+				else if (from.x == 99 && from.y >= 100 && from.y < 150)
+				{
+					//right from 4
+					x = 149;
+					y = 49 - (from.y % 50);
+					return ((x, y), Direction.W);
+				}
+				else if (from.x == 49 && from.y >= 150)
+				{
+					// right from 6
+					x = (from.y % 50) + 50;
+					y = 149;
+					return ((x, y), Direction.N);
 				}
 				return ((from.x + 1, from.y), Direction.E);
 			}
-
-			#endregion East
-
-			#region S
-
-			if (facing == Direction.S)
+			else if (facing == Direction.S)
 			{
-				if ((from.y + 1) % 50 == 0)
+				if (from.y == 49 && from.x >= 100)
 				{
-					if (from.x >= 100)
-					{
-						// fall off 2
-						return ((99, from.x - 100 + 50), Direction.W);
-					}
-					else if (from.y >= 100 && from.x >= 50)
-					{
-						// fall off 4
-						return ((49, from.x - 50 + 150), Direction.W);
-					}
-					else
-					{
-						// fall off 6
-						return ((from.x + 100, 0), Direction.S);
-					}
+					// down from 2
+					y = (from.x % 50) + 50;
+					x = 99;
+					return ((x, y), Direction.W);
 				}
+				else if (from.y == 149 && from.x >= 50 && from.x < 100)
+				{
+					//down from 4
+					x = 49;
+					y = (from.x % 50) + 150;
+					return ((x, y), Direction.W);
+				}
+				else if (from.y == 199 && from.x < 50)
+				{
+					// down from 6
+					x = (from.x % 50) + 100;
+					y = 0;
+					return ((x, y), Direction.S);
+				}
+
 				return ((from.x, from.y + 1), Direction.S);
 			}
-
-			#endregion S
-
-			#region W
-
-			if (facing == Direction.W)
+			else if (facing == Direction.W)
 			{
-				if (from.x % 50 == 0)
+				if (from.x == 50 && from.y < 50)
 				{
-					if (from.y < 50)
-					{
-						// fall off 1
-						return ((0, (49 - from.y) + 100), Direction.E);
-					}
-					else if (from.y < 100)
-					{
-						// fall off 3
-						return ((from.y - 50, 100), Direction.S);
-					}
-					else if (from.y < 150)
-					{
-						// fall off 5
-						return ((50, 149 - from.y), Direction.E);
-					}
-					else if (from.y < 200)
-					{
-						// fall off 6
-						return ((from.y - 150 + 50, 0), Direction.S);
-					}
+					// left from 1
+					x = 0;
+					y = 199 - (from.y % 50);
+					return ((x, y), Direction.E);
+				}
+				else if (from.x == 50 && from.y < 100 && from.y >= 50)
+				{
+					// left from 3
+					x = (from.y % 50);
+					y = 100;
+					return ((x, y), Direction.S);
+				}
+				else if (from.x == 0 && from.y < 150 && from.y >= 100)
+				{
+					//left from 5
+					x = 50;
+					y = 49 - (from.y % 50);
+					return ((x, y), Direction.E);
+				}
+				else if (from.x == 0 && from.y >= 150)
+				{
+					// left from 6
+					x = (from.y % 50) + 50;
+					y = 0;
+					return ((x, y), Direction.S);
 				}
 				return ((from.x - 1, from.y), Direction.W);
 			}
-
-			#endregion W
-
 			throw new Exception();
 		}
 
@@ -182,7 +180,7 @@ namespace _2022.Day22
 			return row.Walls.Contains(pos.x);
 		}
 
-		internal void Navigate(Player p, int distance)
+		public void Navigate(Player p, int distance)
 		{
 			var nextSquare = this.GetNext(p.Position, p.Facing);
 			int movedSpaces = 0;
