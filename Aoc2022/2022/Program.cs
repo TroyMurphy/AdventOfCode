@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using _2022.Day25;
+using _2022.Day24;
 
 internal class Program
 {
@@ -9,7 +9,7 @@ internal class Program
 		var watch = new Stopwatch();
 
 		watch.Start();
-		var problem = new Day25();
+		var problem = new Day24();
 		problem.Solve();
 		watch.Stop();
 

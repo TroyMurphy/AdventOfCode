@@ -59,7 +59,7 @@ public class Grid<T>
 			this.Points.Add(new Point<T?>(x, y, v));
 			return;
 		}
-		point.Value = v;
+		point.SetValue(v);
 	}
 
 	public void Print()
