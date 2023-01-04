@@ -9,6 +9,7 @@ namespace _2022.Day24
 		// public Dictionary<(int x, int y, int minute), List<Direction>> forbidden = new();
 		public int width;
 		public int height;
+		public int stormCycle;
 		(int x, int y) destination;
 
 		public Day24(bool test = false)
@@ -16,6 +17,7 @@ namespace _2022.Day24
 			this._lines = GetLines(test);
 			this.height = this._lines.Count() - 2;
 			this.width = this._lines.First().Length - 2;
+			this.stormCycle = this.width * this.height;
 			this.destination = (width - 1, height);
 
 			int y = 0;
