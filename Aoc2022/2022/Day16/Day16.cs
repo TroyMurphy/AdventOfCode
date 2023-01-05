@@ -33,7 +33,7 @@ namespace _2022.Day16
 
 			// keep only the caves that we might actually visit into the minimized distance matrix
 			// keep as lookup value from dictionary
-			var importantCaveIds = graph.Nodes.Values.Where(x => x.Key == "AA" || x.Weight!.Value > 0).Select(x => x.Id).ToList();
+			var importantCaveIds = graph.Nodes.Values.Where(x => x.Key == "AA" || x.Weight > 0).Select(x => x.Id).ToList();
 
 			var importantCavesCount = importantCaveIds.Count();
 
@@ -104,7 +104,7 @@ namespace _2022.Day16
 					continue;
 				}
 				// otherwise we can just zap to the node using our distances and see if better
-				Visit(toVisit, timeIfTurnedOn, (visitedMask | bitwiseValveMasks[node.Key]), accFlow + (timeIfTurnedOn * toVisit.Weight!.Value), bestFlows);
+				Visit(toVisit, timeIfTurnedOn, (visitedMask | bitwiseValveMasks[node.Key]), accFlow + (timeIfTurnedOn * toVisit.Weight), bestFlows);
 			}
 		}
 	}

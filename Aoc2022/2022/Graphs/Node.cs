@@ -1,11 +1,12 @@
 public class Node<T>
 where T : notnull
 {
+	private int _weight = 1;
+
 	public T Key { get; set; }
 
 	public int Id { get; set; }
 
-	public int? Weight { get; set; }
 
 	public List<Node<T>> Edges { get; set; }
 
@@ -19,8 +20,10 @@ where T : notnull
 
 	public void SetWeight(int weight)
 	{
-		this.Weight = weight;
+		this._weight = weight;
 	}
+
+	public int Weight { get => this._weight; }
 
 	public void AddEdge(Node<T> neighbor)
 	{

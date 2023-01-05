@@ -44,9 +44,53 @@ where T : notnull
 
 	public Node<T> GetNode(T key) => this.Nodes[key];
 
-	public int GetDijkstra(T startKey, T endKey)
+	public List<T> GetDijkstra(T startKey, T endKey)
 	{
-		throw new NotImplementedException();
+		var start = GetNode(startKey);
+		var bests = new Dictionary<T, double>();
+		foreach (var node in this.Nodes)
+		{
+			bests[node.Key] = double.MaxValue;
+		}
+		var toVisit = new PriorityQueue<(T, double), double>(this.Nodes.Count);
+		toVisit.Enqueue((startKey, 0), 0);
+		// priority queue with the node name, its best weight, and priority
+		var visited = new Dictionary<T, T?>();
+		visited[start.Key] = default(T?);
+
+		while (toVisit.Count > 0)
+		{
+			var (vertex, w) = toVisit.Dequeue();
+			var neighbors = GetNode(vertex).Edges;
+
+			foreach (var n in neighbors)
+			{
+				if (visited.ContainsKey(n.Key))
+				{
+					continue;
+				}
+
+				var weightToNeighbor = w + n.Weight;
+				var currentNeighborWeight = bests[n.Key];
+
+				if (weightToNeighbor < currentNeighborWeight)
+				{
+					bests[n.Key] = weightToNeighbor;
+					visited[n.Key] = vertex;
+					toVisit.Enqueue((n.Key, weightToNeighbor), weightToNeighbor);
+				}
+			}
+		}
+
+		var solution = new List<T>();
+		var solutionNode = endKey;
+		while (solutionNode is not null)
+		{
+			solution.Add(solutionNode);
+			solutionNode = visited[solutionNode];
+		}
+		solution.Reverse();
+		return solution;
 	}
 
 	public int[,] GetFloydWarshall()

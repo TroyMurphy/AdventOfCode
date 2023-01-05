@@ -4,15 +4,18 @@ namespace _2022.Day24
 {
 	public class Day24
 	{
+		const bool TEST = false;
 		public readonly IEnumerable<string> _lines;
 		public Dictionary<int, HashSet<Point<Direction>>> allStorms = new();
 		// public Dictionary<(int x, int y, int minute), List<Direction>> forbidden = new();
+
+		public Graph<string> graph;
 		public int width;
 		public int height;
 		public int stormCycle;
 		(int x, int y) destination;
 
-		public Day24(bool test = false)
+		public Day24(bool test = TEST)
 		{
 			this._lines = GetLines(test);
 			this.height = this._lines.Count() - 2;
@@ -68,66 +71,49 @@ namespace _2022.Day24
 
 		private void SolvePartOne()
 		{
-			Explore();
+			BuildBlizzardGraph();
+			var shortest = graph.GetDijkstra("START-0", "END");
+			Console.ForegroundColor = ConsoleColor.Green;
+			Console.WriteLine($"Shortest path is length {shortest.Count - 1}");
+			Console.ResetColor();
+		}
+
+		private void BuildBlizzardGraph()
+		{
+			for (int i = 0; i < stormCycle; i++)
+			{
+				CalculateStorms(i);
+			}
+			var nodesDict = new Dictionary<string, (IList<string>, int)>();
+
+			for (int m = 0; m < stormCycle; m++)
+			{
+				for (int i = 0; i < width; i++)
+				{
+					for (int j = 0; j < width; j++)
+					{
+						if (GetStorm(m).Any(x => x.X == i && x.Y == j))
+						{
+							continue;
+						}
+						var nodeName = $"{i}-{j}-{m}";
+						// get spaces that may be travelled to in the nth minute
+						// REMEMBER TO START MOVING AT MINUTE ONE
+						var attached = GetSpaces(i, j, m + 1);
+						nodesDict[nodeName] = (attached.Select(p => $"{p.x}-{p.y}-{(m + 1) % stormCycle}").ToList(), 1);
+					}
+				}
+				var startAttached = GetSpaces(0, -1, m + 1);
+				nodesDict[$"START-{m}"] = (startAttached.Select(p => p.y == -1 ? $"START-{(m + 1) % stormCycle}" : $"{p.x}-{p.y}-{m + 1}").ToList(), 1);
+				// might unnecessarily add an exit from a blizzard but it's directional so we don't care.
+				nodesDict[$"{width - 1}-{height - 1}-{m}"] = (new List<string> { "END" }, 1);
+			}
+			nodesDict[$"END"] = (new List<string> { }, 1);
+			graph = new Graph<string>(nodesDict);
 		}
 
 		public void Explore()
 		{
-			var minute = 0;
-			(int x, int y) position = (0, -1);
-
-			List<Direction>? bestPath = null;
-
-
-			List<Direction> path = new();
-			PriorityQueue<(int x, int y, List<Direction> path, Direction d, int minute), int> toExplore = new();
-			toExplore.Enqueue((position.x, position.y, path, Direction.None, minute), 1);
-
-			while (toExplore.Count > 0)
-			{
-				var explore = toExplore.Dequeue();
-				position = (explore.x, explore.y);
-				minute = explore.minute;
-				path = explore.path;
-				path.Add(explore.d);
-				if (bestPath is not null && path.Count > bestPath.Count)
-				{
-					continue;
-				}
-				var canVisit = GetSpaces(position.x, position.y, minute + 1);
-
-				// DrawStorm(minute, position);
-
-				// var forbiddenKey = (position.x, position.y, minute);
-				// if (!forbidden.ContainsKey(forbiddenKey)) {
-				// 	forbidden[forbiddenKey] = new List<Direction>();
-				// }
-
-				// cannot wait or move without getting hit
-
-				if (canVisit.Any(x => x.x == destination.x && x.y == destination.y))
-				{
-					path.Add(Direction.Down);
-					position = destination;
-					var solution = path.Skip(1).ToList();
-
-					if (bestPath == null || solution.Count < bestPath.Count)
-					{
-						bestPath = solution;
-					}
-					continue;
-				}
-
-
-				for (int i = 0; i < canVisit.Count; i++)
-				{
-					toExplore.Enqueue((canVisit[i].x, canVisit[i].y, new List<Direction>(path), canVisit[i].d, minute + 1), i + (1000 / (minute + 1)));
-				}
-			}
-			Console.WriteLine("The path out is: ");
-			Console.WriteLine(string.Join(",", bestPath));
-			Console.WriteLine($"The length is {bestPath.Count()}");
-
 		}
 
 		private void SolvePartTwo()
@@ -204,8 +190,8 @@ namespace _2022.Day24
 
 		public HashSet<Point<Direction>> GetStorm(int minute)
 		{
-			CalculateStorms(minute % (width * height));
-			return allStorms[minute];
+			CalculateStorms(minute % (stormCycle));
+			return allStorms[minute % (stormCycle)];
 		}
 		public enum Direction
 		{
@@ -219,7 +205,6 @@ namespace _2022.Day24
 
 		public void DrawStorm(int minute, (int x, int y) position)
 		{
-			Console.WriteLine($"Minute {minute}:");
 			var storm = allStorms[minute];
 
 			for (int y = 0; y < height; y++)
